@@ -283,14 +283,46 @@ a:hover { color: #fff; }
   border-bottom: 1px solid var(--border);
   background: var(--bg-3);
 }
-.editor-lang {
+.lang-tabs {
   display: flex;
+  gap: 6px;
+}
+.lang-tab {
+  display: inline-flex;
   align-items: center;
   gap: 7px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-4);
+  border: 1px solid var(--border);
+  color: var(--text-2);
   font-size: 12.5px;
   font-weight: 600;
-  color: var(--accent-2);
-  letter-spacing: 0.2px;
+  cursor: pointer;
+  transition: all var(--dur) var(--ease);
+}
+.lang-tab:hover {
+  color: var(--text);
+  border-color: var(--border-2);
+}
+.lang-tab.active {
+  background: rgba(99, 102, 241, 0.16);
+  border-color: rgba(99, 102, 241, 0.45);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.15);
+}
+.tab-icon { font-size: 13px; }
+.tab-tag {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text-3);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.lang-tab.active .tab-tag {
+  color: #a5b4fc;
+  background: rgba(99, 102, 241, 0.25);
 }
 .editor-actions { display: flex; gap: 8px; }
 

@@ -1,12 +1,14 @@
 /* ─────────────────────────────────────────────────────────────────────────────
    StrategyLab — app.js
-   Frontend logic: editor, zero-config local data, API calls, results & chart
+   Frontend logic: editor, zero-config local data, dual-engine (Pine & Python),
+   results visualization, and trade analytics
 ───────────────────────────────────────────────────────────────────────────── */
 
 'use strict';
 
 // ── State ─────────────────────────────────────────────────────────────────────
 const state = {
+  currentLang: 'pine', // 'pine' | 'python'
   jobId: null,
   pollTimer: null,
   result: null,
@@ -24,6 +26,8 @@ const el = {
   loadExampleBtn:  () => document.getElementById('loadExampleBtn'),
   validateBtn:     () => document.getElementById('validateBtn'),
   validateStatus:  () => document.getElementById('validateStatus'),
+  tabPine:         () => document.getElementById('tabPine'),
+  tabPython:       () => document.getElementById('tabPython'),
   symbolSelect:    () => document.getElementById('symbolSelect'),
   interval:        () => document.getElementById('interval'),
   startDate:       () => document.getElementById('startDate'),
@@ -57,7 +61,7 @@ const el = {
   navTrades:       () => document.getElementById('nav-trades'),
 };
 
-// ── Example Pine Script ───────────────────────────────────────────────────────
+// ── Example Strategies ────────────────────────────────────────────────────────
 const EXAMPLE_PINE = `//@version=5
 strategy("EMA + RSI Momentum", overlay=true, initial_capital=10000, commission_value=0.1, default_qty_type=strategy.percent_of_equity, default_qty_value=100)
 
@@ -87,6 +91,34 @@ if shortCondition
 // ── Plots
 plot(fastEMA, color=color.new(color.blue, 0),   title="Fast EMA")
 plot(slowEMA, color=color.new(color.orange, 0), title="Slow EMA")
+`;
+
+const EXAMPLE_PYTHON = `# StrategyLab Python Quantitative Strategy
+# The 'df' DataFrame contains: open, high, low, close, volume
+
+import numpy as np
+import pandas as pd
+
+def strategy(df: pd.DataFrame):
+    """
+    Generate boolean Series: (entries, exits)
+    """
+    # 1. Calculate indicators
+    fast_ema = df['close'].ewm(span=9, adjust=False).mean()
+    slow_ema = df['close'].ewm(span=21, adjust=False).mean()
+    
+    # RSI (14)
+    delta = df['close'].diff()
+    gain = delta.clip(lower=0).rolling(window=14).mean()
+    loss = (-delta.clip(upper=0)).rolling(window=14).mean()
+    rs = gain / loss.replace(0, np.nan)
+    rsi = 100 - (100 / (1 + rs))
+    
+    # 2. Entry & Exit signals
+    entries = (fast_ema > slow_ema) & (fast_ema.shift(1) <= slow_ema.shift(1)) & (rsi < 65)
+    exits   = (fast_ema < slow_ema) | (rsi > 70)
+    
+    return entries, exits
 `;
 
 // ── Toast Notifications ───────────────────────────────────────────────────────
@@ -145,7 +177,6 @@ function onSymbolChange() {
   const meta = state.datasetsBySymbol[sym];
   if (!meta) return;
 
-  // Update intervals dropdown
   const intervalSelect = el.interval();
   const currentVal = intervalSelect.value;
   intervalSelect.innerHTML = '';
@@ -166,7 +197,6 @@ function onSymbolChange() {
     intervalSelect.appendChild(opt);
   });
 
-  // If previous selection isn't available, pick first
   if (!meta.intervals.includes(intervalSelect.value)) {
     intervalSelect.value = meta.intervals[0];
   }
@@ -209,18 +239,40 @@ function applyDatePreset(preset, datasetStart, datasetEnd) {
   }
 }
 
-// ── Validate Pine Script ──────────────────────────────────────────────────────
-async function validatePine() {
+// ── Switch Language (Pine / Python) ───────────────────────────────────────────
+function switchLanguage(lang) {
+  state.currentLang = lang;
+  if (lang === 'python') {
+    el.tabPython().classList.add('active');
+    el.tabPine().classList.remove('active');
+    el.editor().placeholder = `# Python Quantitative Strategy\nimport pandas as pd\n\ndef strategy(df: pd.DataFrame):\n    # Calculate signals\n    return entries, exits`;
+    if (!el.editor().value.trim() || el.editor().value === EXAMPLE_PINE) {
+      el.editor().value = EXAMPLE_PYTHON;
+    }
+  } else {
+    el.tabPine().classList.add('active');
+    el.tabPython().classList.remove('active');
+    el.editor().placeholder = `//@version=5\nstrategy("My Strategy", overlay=true)\n\n// Paste your Pine Script strategy here...`;
+    if (!el.editor().value.trim() || el.editor().value === EXAMPLE_PYTHON) {
+      el.editor().value = EXAMPLE_PINE;
+    }
+  }
+  el.validateStatus().textContent = '';
+  el.validateStatus().className = 'validate-status';
+}
+
+// ── Validate Strategy ─────────────────────────────────────────────────────────
+async function validateStrategy() {
   const code = el.editor().value.trim();
-  if (!code) { showToast('Please paste your Pine Script code first.', 'error'); return; }
+  if (!code) { showToast('Please enter your strategy code first.', 'error'); return; }
   const statusEl = el.validateStatus();
   statusEl.textContent = 'Validating…';
   statusEl.className = 'validate-status info';
   try {
-    const resp = await fetch('/api/validate-pine', {
+    const resp = await fetch('/api/validate-strategy', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code }),
+      body: JSON.stringify({ code, lang: state.currentLang }),
     });
     const data = await resp.json();
     if (data.valid) {
@@ -239,14 +291,15 @@ async function validatePine() {
 // ── Run Backtest ──────────────────────────────────────────────────────────────
 async function runBacktest() {
   const code = el.editor().value.trim();
-  if (!code) { showToast('Paste your Pine Script strategy first.', 'error'); return; }
+  if (!code) { showToast('Please paste or write your strategy first.', 'error'); return; }
 
   const payload = {
-    pine_code: code,
-    symbol:    el.symbolSelect().value.trim(),
-    interval:  el.interval().value,
-    start:     el.startDate().value,
-    end:       el.endDate().value,
+    strategy_code: code,
+    lang:          state.currentLang,
+    symbol:        el.symbolSelect().value.trim(),
+    interval:      el.interval().value,
+    start:         el.startDate().value,
+    end:           el.endDate().value,
   };
 
   if (!payload.symbol) { showToast('Please select a market asset.', 'error'); return; }
@@ -312,7 +365,7 @@ function pollStatus(payload) {
     } catch (e) {
       // network hiccup — keep polling
     }
-  }, 500);
+  }, 400);
 }
 
 // ── Progress helpers ──────────────────────────────────────────────────────────
@@ -325,15 +378,17 @@ function showProgress(pct, title, sub) {
 }
 function hideProgress() { el.progressOverlay().style.display = 'none'; }
 
-// ── Render Results ────────────────────────────────────────────────────────────
+// ── Render Results ────────────────────────────────────────────────────
 function renderResults(result, payload) {
   const m = result.metrics;
   state.result = result;
   state.allTrades = result.trades || [];
 
+  const langTag = payload.lang === 'python' ? 'Python Strategy' : 'Pine Script';
+
   // ── Meta description
   el.reportMeta().textContent =
-    `${m.strategy_name}  ·  ${payload.symbol.toUpperCase()}  ·  ${payload.interval.toUpperCase()}  ·  ${payload.start} to ${payload.end}  ·  Local Market Data`;
+    `${m.strategy_name}  ·  ${payload.symbol.toUpperCase()}  ·  ${payload.interval.toUpperCase()}  ·  ${payload.start} to ${payload.end}  ·  ${langTag}`;
 
   // ── Metric cards
   const cards = [
@@ -565,9 +620,13 @@ async function downloadCSV() {
 function init() {
   // Load example
   el.loadExampleBtn().addEventListener('click', () => {
-    el.editor().value = EXAMPLE_PINE;
+    if (state.currentLang === 'python') {
+      el.editor().value = EXAMPLE_PYTHON;
+    } else {
+      el.editor().value = EXAMPLE_PINE;
+    }
     el.validateStatus().textContent = '';
-    showToast('Example strategy loaded. Click "Run Backtest" to test it.', 'info');
+    showToast(`Example ${state.currentLang === 'python' ? 'Python' : 'Pine Script'} strategy loaded.`, 'info');
   });
 
   // Clear
@@ -577,8 +636,12 @@ function init() {
     el.validateStatus().className = 'validate-status';
   });
 
+  // Language Tabs
+  if (el.tabPine()) el.tabPine().addEventListener('click', () => switchLanguage('pine'));
+  if (el.tabPython()) el.tabPython().addEventListener('click', () => switchLanguage('python'));
+
   // Validate
-  el.validateBtn().addEventListener('click', validatePine);
+  el.validateBtn().addEventListener('click', validateStrategy);
 
   // Asset / Interval changes
   el.symbolSelect().addEventListener('change', onSymbolChange);
@@ -617,8 +680,9 @@ function init() {
     });
   });
 
-  // Load available datasets
+  // Initial load
   loadAvailableDatasets();
+  switchLanguage('pine');
 }
 
 document.addEventListener('DOMContentLoaded', init);

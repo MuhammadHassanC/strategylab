@@ -85,7 +85,7 @@
     <div class="section-header">
       <div>
         <h2 class="section-title">Strategy Editor</h2>
-        <p class="section-desc">Paste your Pine Script strategy code below. Supports Pine Script v4 and v5.</p>
+        <p class="section-desc">Develop, paste, or test your algorithmic strategy code. Supports TradingView Pine Script &amp; Python.</p>
       </div>
     </div>
 
@@ -94,10 +94,18 @@
       <!-- Left: Code Editor -->
       <div class="editor-panel">
         <div class="editor-toolbar">
-          <span class="editor-lang">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#5b6cf9" stroke-width="1.5"/><path d="M5 5l2 2-2 2M8 9h2" stroke="#5b6cf9" stroke-width="1.4" stroke-linecap="round"/></svg>
-            Pine Script
-          </span>
+          <div class="lang-tabs" id="langTabs">
+            <button type="button" class="lang-tab active" data-lang="pine" id="tabPine">
+              <span class="tab-icon">🌲</span>
+              <span class="tab-label">Pine Script</span>
+              <span class="tab-tag">v4/v5</span>
+            </button>
+            <button type="button" class="lang-tab" data-lang="python" id="tabPython">
+              <span class="tab-icon">🐍</span>
+              <span class="tab-label">Python</span>
+              <span class="tab-tag">Pandas</span>
+            </button>
+          </div>
           <div class="editor-actions">
             <button class="btn-ghost" id="clearBtn" title="Clear editor">Clear</button>
             <button class="btn-ghost" id="loadExampleBtn" title="Load example strategy">Load Example</button>
@@ -119,7 +127,7 @@ strategy(&quot;My Strategy&quot;, overlay=true, initial_capital=10000, commissio
         </div>
         <div class="editor-footer">
           <div class="validate-status" id="validateStatus"></div>
-          <button class="btn-outline" id="validateBtn">Validate Script</button>
+          <button class="btn-outline" id="validateBtn">Validate Strategy</button>
         </div>
       </div>
 
