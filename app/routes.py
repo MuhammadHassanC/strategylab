@@ -19,6 +19,7 @@ from flask import Flask, jsonify, request, send_file, session
 from flask_cors import CORS
 
 from app.pine_parser import is_pine_script, parse_pine_config, infer_strategy_type
+from app.python_engine import is_python_strategy, validate_python_code, execute_python_strategy
 from app.data_fetcher import fetch_data
 from app.data_manager import get_smart_data, list_available_datasets, has_local_data
 from app.backtester import run_backtest
@@ -47,7 +48,7 @@ _job_lock = threading.Lock()
 
 # ─── Helper ───────────────────────────────────────────────────────────────────
 
-def _run_job(job_id: str, pine_code: str, symbol: str,
+def _run_job(job_id: str, strategy_code: str, symbol: str,
              interval: str, start: str, end: str):
     """Runs in background thread using local pre-downloaded dataset."""
     try:
@@ -60,8 +61,14 @@ def _run_job(job_id: str, pine_code: str, symbol: str,
         with _job_lock:
             _job_status[job_id] = {"status": "running", "progress": 50}
 
-        cfg = parse_pine_config(pine_code)
-        result = run_backtest(df, cfg)
+        # Determine strategy engine (Python or Pine Script)
+        if is_python_strategy(strategy_code):
+            result = execute_python_strategy(df, strategy_code)
+            strat_name = "Python Quantitative Strategy"
+        else:
+            cfg = parse_pine_config(strategy_code)
+            result = run_backtest(df, cfg)
+            strat_name = cfg.title
 
         # Generate CSV
         csv_str = generate_csv_report(
@@ -107,21 +114,37 @@ def health():
     return jsonify({"status": "ok", "version": "1.0.0"})
 
 
+@app.route("/api/validate-strategy", methods=["POST"])
 @app.route("/api/validate-pine", methods=["POST"])
-def validate_pine():
-    """Quickly validate whether submitted code is Pine Script."""
+def validate_strategy():
+    """Validate strategy code (supports Pine Script and Python)."""
     data = request.get_json(force=True, silent=True) or {}
-    code = data.get("code", "")
-    if not code.strip():
+    code = (data.get("code") or data.get("strategy_code") or data.get("pine_code") or "").strip()
+    lang = data.get("lang", "").lower()
+
+    if not code:
         return jsonify({"valid": False, "message": "No code provided."}), 400
 
+    # Python Strategy
+    if lang == "python" or (not lang and is_python_strategy(code)):
+        ok, msg = validate_python_code(code)
+        if not ok:
+            return jsonify({"valid": False, "message": msg}), 422
+        return jsonify({
+            "valid": True,
+            "strategy_name": "Python Quantitative Strategy",
+            "strategy_type": "Python Vectorized",
+            "message": "Valid Python quantitative strategy detected (strategy function ready)",
+        })
+
+    # Pine Script Strategy
     if not is_pine_script(code):
         return jsonify({
             "valid": False,
             "message": (
-                "The code you submitted doesn't appear to be a Pine Script strategy. "
-                "Make sure it includes strategy() or indicator() declarations, "
-                "and uses Pine Script syntax (ta.sma, ta.rsi, strategy.entry, etc.)."
+                "The code you submitted doesn't appear to be a valid strategy. "
+                "Provide a Pine Script strategy with strategy() or indicator() calls, "
+                "or a Python strategy defining strategy(df)."
             )
         }), 422
 
@@ -140,36 +163,43 @@ def validate_pine():
 def backtest():
     """
     Start a backtest job asynchronously using local data.
-    Returns a job_id immediately. Poll /api/status/<job_id> for progress.
+    Supports both Pine Script and Python strategies.
     """
     import uuid
     data = request.get_json(force=True, silent=True) or {}
 
-    pine_code = data.get("pine_code", "").strip()
+    strategy_code = (data.get("strategy_code") or data.get("pine_code") or "").strip()
     symbol = data.get("symbol", "").strip()
     interval = data.get("interval", "1d").strip()
     start = data.get("start", "").strip()
     end = data.get("end", "").strip()
+    lang = data.get("lang", "").lower()
 
     # ── Validation
-    if not pine_code:
-        return jsonify({"error": "Pine Script code is required."}), 400
-    if not is_pine_script(pine_code):
-        return jsonify({
-            "error": (
-                "The submitted code doesn't appear to be a valid Pine Script strategy. "
-                "Please paste a strategy that uses strategy() or indicator() calls, "
-                "with Pine Script indicators (ta.sma, ta.rsi, etc.)."
-            )
-        }), 422
+    if not strategy_code:
+        return jsonify({"error": "Strategy code is required."}), 400
+
+    if lang == "python" or (not lang and is_python_strategy(strategy_code)):
+        ok, msg = validate_python_code(strategy_code)
+        if not ok:
+            return jsonify({"error": msg}), 422
+    else:
+        if not is_pine_script(strategy_code):
+            return jsonify({
+                "error": (
+                    "The submitted code doesn't appear to be a valid Pine Script or Python strategy. "
+                    "Make sure it defines valid Pine Script or a Python strategy(df) function."
+                )
+            }), 422
+
     if not symbol:
-        return jsonify({"error": "A symbol or ticker is required (e.g. BTCUSDT, AAPL)."}), 400
+        return jsonify({"error": "A market asset is required (e.g. BTCUSDT, AAPL)."}), 400
 
     job_id = str(uuid.uuid4())[:8]
     with _job_lock:
         _job_status[job_id] = {"status": "queued", "progress": 0}
 
-    executor.submit(_run_job, job_id, pine_code, symbol, interval, start, end)
+    executor.submit(_run_job, job_id, strategy_code, symbol, interval, start, end)
     log.info(f"Backtest queued: job={job_id} symbol={symbol} interval={interval}")
 
     return jsonify({"job_id": job_id, "message": "Backtest started successfully."})
