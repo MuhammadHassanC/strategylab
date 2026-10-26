@@ -46,18 +46,18 @@
   <div class="hero-inner">
     <div class="hero-badge">
       <span class="badge-dot"></span>
-      Free &amp; Open Source — No Account Required
+      100% Offline &amp; Instant — Pre-Loaded Market Data
     </div>
     <h1 class="hero-title">Backtest Any<br/><span class="gradient-text">Pine Script Strategy</span></h1>
     <p class="hero-subtitle">
-      Paste your TradingView strategy, select a symbol and date range,<br/>
-      and get a comprehensive performance report — in seconds.
+      Paste your TradingView strategy, pick your timeframe and dates,<br/>
+      and get institutional-grade performance analytics — in seconds.
     </p>
     <div class="hero-sources">
-      <span class="source-pill">Yahoo Finance</span>
-      <span class="source-pill">Binance</span>
-      <span class="source-pill">CoinGecko</span>
-      <span class="source-pill">Alpha Vantage</span>
+      <span class="source-pill">✓ Pre-Loaded Datasets</span>
+      <span class="source-pill">✓ Zero API Rate Limits</span>
+      <span class="source-pill">✓ Pine Script v4 &amp; v5</span>
+      <span class="source-pill">✓ 100% Local &amp; Private</span>
     </div>
   </div>
 </section>
@@ -110,61 +110,69 @@ strategy(&quot;My Strategy&quot;, overlay=true, initial_capital=10000, commissio
 
       <!-- Right: Parameters -->
       <div class="params-panel">
-        <h3 class="params-title">Backtest Parameters</h3>
+        <h3 class="params-title">Backtest Settings</h3>
 
+        <!-- Asset Selection -->
         <div class="form-group">
-          <label class="form-label" for="dataSource">Data Source</label>
+          <div class="label-row">
+            <label class="form-label" for="symbolSelect">Market Asset</label>
+            <span class="badge-ready" id="dataReadyBadge">
+              <span class="dot-green"></span> Local Data Ready
+            </span>
+          </div>
           <div class="select-wrap">
-            <select id="dataSource" class="form-select">
-              <option value="yahoo">Yahoo Finance — Stocks, ETFs, Crypto</option>
-              <option value="binance">Binance — Crypto Pairs</option>
-              <option value="coingecko">CoinGecko — Crypto (Daily)</option>
-              <option value="alphavantage">Alpha Vantage — Stocks</option>
+            <select id="symbolSelect" class="form-select">
+              <optgroup label="Crypto (Pre-Loaded)">
+                <option value="BTCUSDT" selected>BTC/USDT — Bitcoin</option>
+                <option value="ETHUSDT">ETH/USDT — Ethereum</option>
+                <option value="SOLUSDT">SOL/USDT — Solana</option>
+              </optgroup>
+              <optgroup label="Stocks & ETFs (Pre-Loaded)">
+                <option value="AAPL">AAPL — Apple Inc.</option>
+                <option value="SPY">SPY — S&P 500 ETF</option>
+                <option value="TSLA">TSLA — Tesla Inc.</option>
+                <option value="NVDA">NVDA — NVIDIA Corp.</option>
+              </optgroup>
             </select>
+          </div>
+          <div class="dataset-meta-info" id="datasetMetaInfo">
+            <span class="info-pill" id="barsCount">1,460 Bars</span>
+            <span class="info-pill" id="dateBounds">2021-01-02 → 2024-12-31</span>
           </div>
         </div>
 
-        <div class="form-group">
-          <label class="form-label" for="symbol">
-            Symbol / Ticker
-            <span class="label-hint" id="symbolHint">e.g. AAPL, BTC-USD, SPY</span>
-          </label>
-          <input type="text" id="symbol" class="form-input" placeholder="AAPL" value="AAPL" autocomplete="off" />
-          <div class="symbol-suggestions" id="symbolSuggestions"></div>
-        </div>
-
+        <!-- Timeframe Selection -->
         <div class="form-group">
           <label class="form-label" for="interval">Timeframe</label>
           <div class="select-wrap">
             <select id="interval" class="form-select">
               <option value="1d" selected>Daily (1D)</option>
-              <option value="1h">Hourly (1H)</option>
-              <option value="4h">4 Hours</option>
-              <option value="15m">15 Minutes</option>
-              <option value="5m">5 Minutes</option>
-              <option value="1w">Weekly</option>
-              <option value="1M">Monthly</option>
+              <option value="4h">4 Hours (4H)</option>
+              <option value="1h">1 Hour (1H)</option>
             </select>
           </div>
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="startDate">Start Date</label>
-            <input type="date" id="startDate" class="form-input" value="2020-01-01" />
+        <!-- Date Range Selection with Presets -->
+        <div class="form-group">
+          <div class="label-row">
+            <label class="form-label">Backtest Period</label>
+            <div class="preset-group" id="presetGroup">
+              <button type="button" class="preset-btn active" data-preset="all">Max</button>
+              <button type="button" class="preset-btn" data-preset="2y">2Y</button>
+              <button type="button" class="preset-btn" data-preset="1y">1Y</button>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label" for="endDate">End Date</label>
-            <input type="date" id="endDate" class="form-input" value="2024-12-31" />
+          <div class="form-row">
+            <div class="form-group-sub">
+              <label class="sub-label" for="startDate">From</label>
+              <input type="date" id="startDate" class="form-input" value="2021-01-02" />
+            </div>
+            <div class="form-group-sub">
+              <label class="sub-label" for="endDate">To</label>
+              <input type="date" id="endDate" class="form-input" value="2024-12-31" />
+            </div>
           </div>
-        </div>
-
-        <div class="form-group" id="avKeyGroup" style="display:none;">
-          <label class="form-label" for="avKey">
-            Alpha Vantage API Key
-            <a href="https://www.alphavantage.co/support/#api-key" target="_blank" class="label-link">Get free key ↗</a>
-          </label>
-          <input type="text" id="avKey" class="form-input" placeholder="demo (limited) or your free key" value="demo" />
         </div>
 
         <button class="btn-primary" id="runBtn">

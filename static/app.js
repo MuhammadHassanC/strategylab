@@ -1,6 +1,6 @@
 /* ─────────────────────────────────────────────────────────────────────────────
    StrategyLab — app.js
-   Frontend logic: editor, API calls, chart rendering, results display
+   Frontend logic: editor, zero-config local data, API calls, results & chart
 ───────────────────────────────────────────────────────────────────────────── */
 
 'use strict';
@@ -10,9 +10,11 @@ const state = {
   jobId: null,
   pollTimer: null,
   result: null,
-  trades: [],
   allTrades: [],
   equityChart: null,
+  datasets: [],
+  datasetsBySymbol: {},
+  activePreset: 'all',
 };
 
 // ── DOM References ────────────────────────────────────────────────────────────
@@ -22,15 +24,13 @@ const el = {
   loadExampleBtn:  () => document.getElementById('loadExampleBtn'),
   validateBtn:     () => document.getElementById('validateBtn'),
   validateStatus:  () => document.getElementById('validateStatus'),
-  dataSource:      () => document.getElementById('dataSource'),
-  symbol:          () => document.getElementById('symbol'),
-  symbolHint:      () => document.getElementById('symbolHint'),
-  symbolSuggestions: () => document.getElementById('symbolSuggestions'),
+  symbolSelect:    () => document.getElementById('symbolSelect'),
   interval:        () => document.getElementById('interval'),
   startDate:       () => document.getElementById('startDate'),
   endDate:         () => document.getElementById('endDate'),
-  avKeyGroup:      () => document.getElementById('avKeyGroup'),
-  avKey:           () => document.getElementById('avKey'),
+  barsCount:       () => document.getElementById('barsCount'),
+  dateBounds:      () => document.getElementById('dateBounds'),
+  presetGroup:     () => document.getElementById('presetGroup'),
   runBtn:          () => document.getElementById('runBtn'),
 
   progressOverlay: () => document.getElementById('progressOverlay'),
@@ -89,29 +89,7 @@ plot(fastEMA, color=color.new(color.blue, 0),   title="Fast EMA")
 plot(slowEMA, color=color.new(color.orange, 0), title="Slow EMA")
 `;
 
-// ── Data Source → Symbol hints ─────────────────────────────────────────────
-const SOURCE_HINTS = {
-  yahoo:        { hint: 'e.g. AAPL, BTC-USD, SPY, ETH-USD',  default: 'AAPL' },
-  binance:      { hint: 'e.g. BTCUSDT, ETHUSDT, SOLUSDT',    default: 'BTCUSDT' },
-  coingecko:    { hint: 'e.g. bitcoin, ethereum, solana',     default: 'bitcoin' },
-  alphavantage: { hint: 'e.g. IBM, AAPL (demo key = IBM)',    default: 'IBM' },
-};
-
-const SOURCE_SYMBOLS = {
-  yahoo:        ['AAPL', 'MSFT', 'BTC-USD', 'ETH-USD', 'SPY', 'TSLA', 'NVDA'],
-  binance:      ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'ADAUSDT', 'XRPUSDT'],
-  coingecko:    ['bitcoin', 'ethereum', 'solana', 'cardano', 'dogecoin'],
-  alphavantage: ['IBM', 'AAPL', 'MSFT'],
-};
-
-const SOURCE_INTERVALS = {
-  yahoo:        ['1m','5m','15m','30m','1h','4h','1d','1w','1M'],
-  binance:      ['1m','5m','15m','30m','1h','4h','1d','1w'],
-  coingecko:    ['1d'],
-  alphavantage: ['1d'],
-};
-
-// ── Toast ─────────────────────────────────────────────────────────────────────
+// ── Toast Notifications ───────────────────────────────────────────────────────
 function showToast(msg, type = 'info', duration = 4000) {
   let container = document.querySelector('.toast-container');
   if (!container) {
@@ -123,7 +101,11 @@ function showToast(msg, type = 'info', duration = 4000) {
   t.className = `toast ${type}`;
   t.textContent = msg;
   container.appendChild(t);
-  setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 350); }, duration);
+  setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transition = 'opacity 0.3s';
+    setTimeout(() => t.remove(), 350);
+  }, duration);
 }
 
 // ── Format helpers ────────────────────────────────────────────────────────────
@@ -143,37 +125,88 @@ function colorClass(val) {
   return '';
 }
 
-// ── Source change ─────────────────────────────────────────────────────────────
-function onSourceChange() {
-  const src = el.dataSource().value;
-  const { hint, default: def } = SOURCE_HINTS[src] || {};
-  if (hint) { el.symbolHint().textContent = hint; }
-  if (def)  { el.symbol().value = def; el.symbol().placeholder = def; }
+// ── Load Available Local Datasets ─────────────────────────────────────────────
+async function loadAvailableDatasets() {
+  try {
+    const resp = await fetch('/api/datasets');
+    if (!resp.ok) return;
+    const data = await resp.json();
+    state.datasets = data.datasets || [];
+    state.datasetsBySymbol = data.by_symbol || {};
 
-  // Interval options
-  const validIntervals = SOURCE_INTERVALS[src] || ['1d'];
-  const selInt = el.interval();
-  Array.from(selInt.options).forEach(opt => {
-    opt.disabled = !validIntervals.includes(opt.value);
+    onSymbolChange();
+  } catch (err) {
+    console.warn('Could not load dataset metadata:', err);
+  }
+}
+
+function onSymbolChange() {
+  const sym = el.symbolSelect().value;
+  const meta = state.datasetsBySymbol[sym];
+  if (!meta) return;
+
+  // Update intervals dropdown
+  const intervalSelect = el.interval();
+  const currentVal = intervalSelect.value;
+  intervalSelect.innerHTML = '';
+
+  const intervalLabels = {
+    '1d': 'Daily (1D)',
+    '4h': '4 Hours (4H)',
+    '1h': '1 Hour (1H)',
+    '15m': '15 Minutes (15m)',
+    '5m': '5 Minutes (5m)',
+  };
+
+  meta.intervals.forEach(inv => {
+    const opt = document.createElement('option');
+    opt.value = inv;
+    opt.textContent = intervalLabels[inv] || inv.toUpperCase();
+    if (inv === currentVal) opt.selected = true;
+    intervalSelect.appendChild(opt);
   });
-  if (!validIntervals.includes(selInt.value)) {
-    selInt.value = '1d';
+
+  // If previous selection isn't available, pick first
+  if (!meta.intervals.includes(intervalSelect.value)) {
+    intervalSelect.value = meta.intervals[0];
   }
 
-  // Alpha Vantage key
-  el.avKeyGroup().style.display = src === 'alphavantage' ? '' : 'none';
+  updateIntervalMeta();
+}
 
-  // Symbol suggestions
-  const syms = SOURCE_SYMBOLS[src] || [];
-  const sug = el.symbolSuggestions();
-  sug.innerHTML = '';
-  syms.forEach(s => {
-    const chip = document.createElement('span');
-    chip.className = 'symbol-chip';
-    chip.textContent = s;
-    chip.addEventListener('click', () => { el.symbol().value = s; });
-    sug.appendChild(chip);
-  });
+function updateIntervalMeta() {
+  const sym = el.symbolSelect().value;
+  const inv = el.interval().value;
+
+  const match = state.datasets.find(d => d.symbol === sym && d.interval === inv);
+  if (match) {
+    if (el.barsCount()) el.barsCount().textContent = `${match.bars.toLocaleString()} Bars`;
+    if (el.dateBounds()) el.dateBounds().textContent = `${match.start} → ${match.end}`;
+    applyDatePreset(state.activePreset, match.start, match.end);
+  }
+}
+
+function applyDatePreset(preset, datasetStart, datasetEnd) {
+  state.activePreset = preset;
+  if (!datasetStart || !datasetEnd) return;
+
+  const endDt = new Date(datasetEnd);
+  el.endDate().value = datasetEnd;
+
+  if (preset === '1y') {
+    const startDt = new Date(endDt);
+    startDt.setFullYear(startDt.getFullYear() - 1);
+    const startStr = startDt.toISOString().split('T')[0];
+    el.startDate().value = startStr > datasetStart ? startStr : datasetStart;
+  } else if (preset === '2y') {
+    const startDt = new Date(endDt);
+    startDt.setFullYear(startDt.getFullYear() - 2);
+    const startStr = startDt.toISOString().split('T')[0];
+    el.startDate().value = startStr > datasetStart ? startStr : datasetStart;
+  } else {
+    // Max / All
+    el.startDate().value = datasetStart;
+  }
 }
 
 // ── Validate Pine Script ──────────────────────────────────────────────────────
@@ -209,20 +242,18 @@ async function runBacktest() {
   if (!code) { showToast('Paste your Pine Script strategy first.', 'error'); return; }
 
   const payload = {
-    pine_code:  code,
-    source:     el.dataSource().value,
-    symbol:     el.symbol().value.trim(),
-    interval:   el.interval().value,
-    start:      el.startDate().value,
-    end:        el.endDate().value,
-    av_api_key: el.avKey().value.trim(),
+    pine_code: code,
+    symbol:    el.symbolSelect().value.trim(),
+    interval:  el.interval().value,
+    start:     el.startDate().value,
+    end:       el.endDate().value,
   };
 
-  if (!payload.symbol) { showToast('Please enter a symbol (e.g. AAPL, BTCUSDT).', 'error'); return; }
+  if (!payload.symbol) { showToast('Please select a market asset.', 'error'); return; }
 
   // Show progress
   el.runBtn().disabled = true;
-  showProgress(0, 'Starting backtest…', 'Sending your strategy to the analysis engine…');
+  showProgress(0, 'Initializing Backtest…', `Loading pre-downloaded market data for ${payload.symbol}…`);
 
   try {
     const resp = await fetch('/api/backtest', {
@@ -234,7 +265,7 @@ async function runBacktest() {
     if (!resp.ok) {
       hideProgress();
       el.runBtn().disabled = false;
-      showToast(data.error || 'Request failed.', 'error', 6000);
+      showToast(data.error || 'Backtest failed to start.', 'error', 6000);
       return;
     }
     state.jobId = data.job_id;
@@ -251,9 +282,9 @@ function pollStatus(payload) {
   if (state.pollTimer) clearInterval(state.pollTimer);
 
   const LABELS = {
-    queued:   ['In Queue',          'Your backtest is queued and will start shortly…'],
-    fetching: ['Fetching Market Data', `Downloading historical data from ${payload.source}…`],
-    running:  ['Running Backtest',  'Calculating signals and simulating all trades…'],
+    queued:   ['In Queue',          'Your backtest is queued…'],
+    fetching: ['Loading Local Market Data', `Reading historical candles for ${payload.symbol} (${payload.interval}) from disk…`],
+    running:  ['Simulating Strategy', 'Calculating indicators and processing trade entries/exits…'],
     done:     ['Complete',          'Backtest finished.'],
     error:    ['Error',             ''],
   };
@@ -271,7 +302,7 @@ function pollStatus(payload) {
         hideProgress();
         el.runBtn().disabled = false;
         renderResults(data.result, payload);
-        showToast('Backtest completed successfully.', 'success');
+        showToast('Backtest completed successfully!', 'success');
       } else if (data.status === 'error') {
         clearInterval(state.pollTimer);
         hideProgress();
@@ -281,7 +312,7 @@ function pollStatus(payload) {
     } catch (e) {
       // network hiccup — keep polling
     }
-  }, 900);
+  }, 500);
 }
 
 // ── Progress helpers ──────────────────────────────────────────────────────────
@@ -302,7 +333,7 @@ function renderResults(result, payload) {
 
   // ── Meta description
   el.reportMeta().textContent =
-    `${m.strategy_name}  ·  ${payload.symbol.toUpperCase()}  ·  ${payload.interval}  ·  ${payload.start} – ${payload.end}  ·  ${payload.source.charAt(0).toUpperCase()+payload.source.slice(1)}`;
+    `${m.strategy_name}  ·  ${payload.symbol.toUpperCase()}  ·  ${payload.interval.toUpperCase()}  ·  ${payload.start} to ${payload.end}  ·  Local Market Data`;
 
   // ── Metric cards
   const cards = [
@@ -549,9 +580,25 @@ function init() {
   // Validate
   el.validateBtn().addEventListener('click', validatePine);
 
-  // Data source change
-  el.dataSource().addEventListener('change', onSourceChange);
-  onSourceChange(); // initialize
+  // Asset / Interval changes
+  el.symbolSelect().addEventListener('change', onSymbolChange);
+  el.interval().addEventListener('change', updateIntervalMeta);
+
+  // Period Presets
+  const presetBtns = document.querySelectorAll('.preset-btn');
+  presetBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      presetBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const preset = btn.dataset.preset;
+      const sym = el.symbolSelect().value;
+      const inv = el.interval().value;
+      const match = state.datasets.find(d => d.symbol === sym && d.interval === inv);
+      if (match) {
+        applyDatePreset(preset, match.start, match.end);
+      }
+    });
+  });
 
   // Run
   el.runBtn().addEventListener('click', runBacktest);
@@ -570,9 +617,8 @@ function init() {
     });
   });
 
-  // Set default end date to today
-  const today = new Date().toISOString().split('T')[0];
-  el.endDate().value = today;
+  // Load available datasets
+  loadAvailableDatasets();
 }
 
 document.addEventListener('DOMContentLoaded', init);
