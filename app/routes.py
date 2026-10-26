@@ -20,6 +20,7 @@ from flask_cors import CORS
 
 from app.pine_parser import is_pine_script, parse_pine_config, infer_strategy_type
 from app.data_fetcher import fetch_data
+from app.data_manager import get_smart_data, list_available_datasets, has_local_data
 from app.backtester import run_backtest
 from app.report_generator import generate_csv_report
 
@@ -46,17 +47,18 @@ _job_lock = threading.Lock()
 
 # ─── Helper ───────────────────────────────────────────────────────────────────
 
-def _run_job(job_id: str, pine_code: str, source: str, symbol: str,
-             interval: str, start: str, end: str, av_key: str):
-    """Runs in background thread."""
+def _run_job(job_id: str, pine_code: str, symbol: str,
+             interval: str, start: str, end: str):
+    """Runs in background thread using local pre-downloaded dataset."""
     try:
         with _job_lock:
-            _job_status[job_id] = {"status": "fetching", "progress": 10}
+            _job_status[job_id] = {"status": "fetching", "progress": 15}
 
-        df = fetch_data(source, symbol, interval, start, end, av_key)
+        # Load from local dataset (zero network failure)
+        df = get_smart_data(symbol, interval, start, end)
 
         with _job_lock:
-            _job_status[job_id] = {"status": "running", "progress": 45}
+            _job_status[job_id] = {"status": "running", "progress": 50}
 
         cfg = parse_pine_config(pine_code)
         result = run_backtest(df, cfg)
@@ -66,7 +68,7 @@ def _run_job(job_id: str, pine_code: str, source: str, symbol: str,
             metrics=result["metrics"],
             trades=result["trades"],
             symbol=symbol,
-            data_source=source,
+            data_source="Local Dataset",
             interval=interval,
             start_date=start,
             end_date=end,
@@ -80,7 +82,7 @@ def _run_job(job_id: str, pine_code: str, source: str, symbol: str,
                 "result": result,
                 "csv_available": True,
             }
-        log.info(f"Job {job_id} completed successfully.")
+        log.info(f"Job {job_id} completed successfully for {symbol} ({interval}).")
 
     except Exception as exc:
         tb = traceback.format_exc()
@@ -137,19 +139,17 @@ def validate_pine():
 @app.route("/api/backtest", methods=["POST"])
 def backtest():
     """
-    Start a backtest job asynchronously.
+    Start a backtest job asynchronously using local data.
     Returns a job_id immediately. Poll /api/status/<job_id> for progress.
     """
     import uuid
     data = request.get_json(force=True, silent=True) or {}
 
     pine_code = data.get("pine_code", "").strip()
-    source = data.get("source", "yahoo").strip().lower()
     symbol = data.get("symbol", "").strip()
     interval = data.get("interval", "1d").strip()
-    start = data.get("start", "2020-01-01").strip()
-    end = data.get("end", "2024-01-01").strip()
-    av_key = data.get("av_api_key", "demo").strip()
+    start = data.get("start", "").strip()
+    end = data.get("end", "").strip()
 
     # ── Validation
     if not pine_code:
@@ -163,16 +163,44 @@ def backtest():
             )
         }), 422
     if not symbol:
-        return jsonify({"error": "A symbol or ticker is required (e.g. AAPL, BTCUSDT)."}), 400
+        return jsonify({"error": "A symbol or ticker is required (e.g. BTCUSDT, AAPL)."}), 400
 
     job_id = str(uuid.uuid4())[:8]
     with _job_lock:
         _job_status[job_id] = {"status": "queued", "progress": 0}
 
-    executor.submit(_run_job, job_id, pine_code, source, symbol, interval, start, end, av_key)
-    log.info(f"Backtest queued: job={job_id} symbol={symbol} source={source}")
+    executor.submit(_run_job, job_id, pine_code, symbol, interval, start, end)
+    log.info(f"Backtest queued: job={job_id} symbol={symbol} interval={interval}")
 
     return jsonify({"job_id": job_id, "message": "Backtest started successfully."})
+
+
+@app.route("/api/datasets")
+def datasets():
+    """Return all pre-loaded local market datasets and metadata."""
+    items = list_available_datasets()
+    by_symbol = {}
+    for item in items:
+        sym = item["symbol"]
+        if sym not in by_symbol:
+            by_symbol[sym] = {
+                "symbol": sym,
+                "intervals": [],
+                "start": item["start"],
+                "end": item["end"],
+                "total_bars": item["bars"],
+            }
+        by_symbol[sym]["intervals"].append(item["interval"])
+        if item["start"] < by_symbol[sym]["start"]:
+            by_symbol[sym]["start"] = item["start"]
+        if item["end"] > by_symbol[sym]["end"]:
+            by_symbol[sym]["end"] = item["end"]
+
+    return jsonify({
+        "count": len(items),
+        "datasets": items,
+        "by_symbol": by_symbol,
+    })
 
 
 @app.route("/api/status/<job_id>")
@@ -203,34 +231,12 @@ def download_csv(job_id: str):
 
 @app.route("/api/symbols")
 def symbols():
-    """Return suggested symbols per data source for UI hints."""
+    """Return available pre-loaded symbols and popular defaults."""
+    items = list_available_datasets()
+    local_symbols = sorted(list(set(d["symbol"] for d in items)))
     return jsonify({
-        "yahoo": {
-            "stocks": ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "SPY", "QQQ"],
-            "crypto": ["BTC-USD", "ETH-USD", "BNB-USD", "SOL-USD", "ADA-USD"],
-            "etfs": ["SPY", "QQQ", "GLD", "IWM", "VTI"],
-        },
-        "binance": {
-            "pairs": ["BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "ADAUSDT",
-                      "XRPUSDT", "DOGEUSDT", "DOTUSDT", "LINKUSDT", "LTCUSDT"],
-        },
-        "coingecko": {
-            "coins": ["bitcoin", "ethereum", "binancecoin", "solana", "cardano",
-                      "ripple", "dogecoin", "polkadot", "chainlink", "litecoin"],
-        },
-        "alphavantage": {
-            "stocks": ["IBM", "AAPL", "MSFT", "AMZN", "TSLA"],
-            "note": "demo key supports only IBM. Add your free API key for all symbols.",
-        },
+        "local": local_symbols,
+        "crypto": ["BTCUSDT", "ETHUSDT", "SOLUSDT"],
+        "stocks": ["AAPL", "SPY", "TSLA", "NVDA"],
     })
 
-
-@app.route("/api/intervals")
-def intervals():
-    """Supported intervals per source."""
-    return jsonify({
-        "yahoo": ["1m", "5m", "15m", "30m", "1h", "4h", "1d", "1w", "1M"],
-        "binance": ["1m", "5m", "15m", "30m", "1h", "4h", "1d", "1w"],
-        "coingecko": ["1d"],
-        "alphavantage": ["1d"],
-    })
