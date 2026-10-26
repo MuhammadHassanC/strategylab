@@ -1,38 +1,59 @@
-# StrategyLab — Pine Script Backtester
+# StrategyLab — Quantitative Trading Strategy Lab
 
-A free, open-source, locally-hosted backtesting tool for TradingView Pine Script strategies. Paste any Pine Script strategy, choose a pre-loaded market asset and timeframe, and get instant performance reports with zero network latency, zero API rate limits, and 100% reliability.
+A modern, institutional-grade backtesting platform for algorithmic trading strategies. Test **Pine Script (v4 & v5)** and **Python (Pandas / NumPy)** vectorised strategies on pre-downloaded historical market data with zero API limits, zero latency, and comprehensive trade analytics.
 
 ---
 
 ## Key Highlights
 
-- **100% Offline & Reliable** — Comes with pre-downloaded historical OHLCV market datasets (Crypto & Stocks). No API keys, no rate-limits, and no data source configuration errors.
-- **Pine Script Support** — Paste your strategy directly from TradingView. Supports Pine Script v4 and v5 syntax including `ta.sma`, `ta.ema`, `ta.rsi`, `ta.macd`, `ta.bb`, `ta.stoch`, `strategy.entry`, `strategy.exit`, and variable-based parameter inputs (`input.int(...)`).
-- **Pre-Loaded Market Datasets** — High-resolution historical datasets ready out of the box:
+- **Multi-Strategy Support** — Test both TradingView **Pine Script** strategies and custom **Python vectorised strategies** in one unified workspace.
+- **100% Offline & Reliable** — Comes bundled with pre-downloaded historical OHLCV market datasets (Crypto & Stocks). No API keys, no rate-limits, and zero network configuration errors.
+- **Pre-Loaded Market Datasets** — Ready out of the box:
   - **Crypto**: `BTC/USDT` (Daily, 4H, 1H), `ETH/USDT` (Daily, 1H), `SOL/USDT` (Daily)
   - **Stocks & ETFs**: `AAPL` (Daily), `SPY` (Daily), `TSLA` (Daily), `NVDA` (Daily)
-  - Automatic download and disk caching for any custom assets via `download_data.py`.
+  - Custom datasets can be downloaded or updated anytime via `python download_data.py`.
 - **Institutional-Grade Performance Metrics** — Net profit, win rate, profit factor, max drawdown, Sharpe ratio, Sortino ratio, Calmar ratio, trade duration, streaks, and Buy & Hold comparison.
 - **Interactive Equity Curve** — High-performance chart showing portfolio growth and drawdown over time.
-- **Detailed Trade Log & CSV Export** — Complete record of every executed trade with entry/exit timestamps, prices, P&L, and one-click full CSV report download.
+- **Detailed Trade Log & CSV Export** — Complete record of every executed trade with entry/exit timestamps, prices, P&L, and one-click CSV report download.
 - **Fast & Non-Blocking** — Vectorised simulation running asynchronously on a background worker pool.
 
 ---
 
-## Supported Pine Script Strategies
+## Strategy Examples
 
-StrategyLab parses and backtests standard Pine Script patterns:
+### 1. Pine Script Strategy
+```pinescript
+//@version=5
+strategy("EMA + RSI Momentum", overlay=true, initial_capital=10000, commission_value=0.1)
 
-| Strategy Pattern | Indicators / Keywords |
-|---|---|
-| **Moving Average Crossover** | `ta.sma`, `ta.ema` + `crossover` / `crossunder` |
-| **RSI Momentum & Mean Reversion** | `ta.rsi` + overbought / oversold thresholds |
-| **MACD Trend Crossover** | `ta.macd` (signal line cross) |
-| **Bollinger Bands** | `ta.bb` (upper/lower band bounces & breaks) |
-| **RSI + Moving Average** | `ta.rsi` filtered with `ta.ema` / `ta.sma` trend |
-| **RSI + MACD** | Momentum convergence signals |
-| **Bollinger Bands + RSI** | Volatility envelope + momentum confirmation |
-| **Stochastic Oscillator** | `ta.stoch` (%K / %D crossovers) |
+fastEMA = ta.ema(close, 9)
+slowEMA = ta.ema(close, 21)
+rsiVal  = ta.rsi(close, 14)
+
+if ta.crossover(fastEMA, slowEMA) and rsiVal < 65
+    strategy.entry("Long", strategy.long)
+
+if ta.crossunder(fastEMA, slowEMA) or rsiVal > 70
+    strategy.close("Long")
+```
+
+### 2. Python Quantitative Strategy
+```python
+import pandas as pd
+import numpy as np
+
+def strategy(df: pd.DataFrame):
+    """
+    Generate boolean Series: (entries, exits)
+    """
+    fast_ema = df['close'].ewm(span=9, adjust=False).mean()
+    slow_ema = df['close'].ewm(span=21, adjust=False).mean()
+    
+    entries = (fast_ema > slow_ema) & (fast_ema.shift(1) <= slow_ema.shift(1))
+    exits   = (fast_ema < slow_ema) | (df['close'] < fast_ema * 0.98)
+    
+    return entries, exits
+```
 
 ---
 
@@ -76,26 +97,14 @@ The web application starts locally at:
 ## Quick Start Guide
 
 1. Open **`http://127.0.0.1:5000`** in your browser.
-2. In the **Strategy Editor**, paste your Pine Script strategy code (or click **Load Example** to load a ready-to-test EMA + RSI strategy).
-3. Click **Validate Script** to inspect parsed variables and indicator parameters.
+2. In the **Strategy Editor**, select your language (**Pine Script** or **Python**) and paste your strategy code (or click **Load Example**).
+3. Click **Validate Strategy** to inspect parsed variables or function signatures.
 4. Under **Backtest Settings**:
    - Choose your asset (e.g. `BTC/USDT`, `ETH/USDT`, `AAPL`, `SPY`).
    - Pick your desired timeframe (`1D`, `4H`, `1H`).
    - Select your backtest date window (or click presets: `Max`, `2Y`, `1Y`).
 5. Click **Run Backtest** — results appear instantly!
-6. Inspect the performance overview, interactive equity curve, and individual trade logs. Click **Download CSV Report** to export everything for offline analysis or spreadsheet sharing.
-
----
-
-## Pre-Downloading More Datasets
-
-To refresh or pre-download additional market datasets into the local `data/` folder, simply run:
-
-```bash
-python download_data.py
-```
-
-All datasets are saved cleanly as standard CSVs in `data/<SYMBOL>_<INTERVAL>.csv`.
+6. Inspect the performance overview, interactive equity curve, and individual trade logs. Click **Download CSV Report** to export everything.
 
 ---
 
@@ -113,6 +122,7 @@ strategylab/
 │   ├── data_manager.py     # Local dataset loader & automated cache
 │   ├── data_fetcher.py     # External data fetchers (Binance, Yahoo)
 │   ├── pine_parser.py      # Pine Script v4/v5 parser & config extractor
+│   ├── python_engine.py    # Python vectorized strategy runner
 │   ├── backtester.py       # Vectorised trade simulation engine
 │   └── report_generator.py # CSV export report generator
 └── static/
@@ -128,7 +138,7 @@ strategylab/
 | Method | Endpoint | Description |
 |---|---|---|
 | `GET`  | `/api/datasets` | List all available local datasets and date bounds |
-| `POST` | `/api/validate-pine` | Validate Pine Script syntax and infer strategy |
+| `POST` | `/api/validate-strategy` | Validate Pine Script or Python strategy syntax |
 | `POST` | `/api/backtest` | Run an asynchronous backtest on local data |
 | `GET`  | `/api/status/<job_id>` | Poll backtest execution status & progress |
 | `GET`  | `/api/download-csv/<job_id>` | Download generated CSV report |
