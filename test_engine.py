@@ -76,5 +76,19 @@ assert "STRATEGY INFORMATION" in csv, "CSV should contain strategy section"
 assert "COMPLETE TRADE LOG" in csv, "CSV should contain trade log section"
 print()
 print("CSV report generated OK, length:", len(csv), "chars")
+
+# Test local dataset loading and backtest on real BTCUSDT data
+from app.data_manager import load_dataset, list_available_datasets
+available = list_available_datasets()
+print()
+print(f"=== LOCAL DATASETS ({len(available)} available) ===")
+for ds in available[:4]:
+    print(f"  * {ds['symbol']} ({ds['interval']}): {ds['bars']} bars from {ds['start']} to {ds['end']}")
+
+btc_df = load_dataset("BTCUSDT", "1d", "2023-01-01", "2024-01-01")
+print(f"\nLoaded BTCUSDT real data: {len(btc_df)} bars ({btc_df.index[0].date()} -> {btc_df.index[-1].date()})")
+btc_result = run_backtest(btc_df, cfg)
+btc_m = btc_result["metrics"]
+print(f"BTC Strategy Trades: {btc_m.get('total_trades')}, Net Profit: ${btc_m.get('total_net_profit')}, Win Rate: {btc_m.get('win_rate_pct')}%")
 print()
 print("ALL TESTS PASSED")
