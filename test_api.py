@@ -58,7 +58,49 @@ if ta.crossunder(fast, slow)
     print(f"CSV Download: {csv_resp.status_code}, Length: {len(csv_resp.text)} chars")
     assert csv_resp.status_code == 200
 
-    print("\nALL API ENDPOINTS TESTED SUCCESSFULLY!")
+    # 5. Test Python strategy backtesting
+    py_strategy = """
+import pandas as pd
+import numpy as np
+
+def strategy(df: pd.DataFrame):
+    fast = df['close'].ewm(span=9, adjust=False).mean()
+    slow = df['close'].ewm(span=21, adjust=False).mean()
+    entries = (fast > slow) & (fast.shift(1) <= slow.shift(1))
+    exits = (fast < slow) & (fast.shift(1) >= slow.shift(1))
+    return entries, exits
+"""
+    # Validation
+    v_resp = requests.post(f"{base}/api/validate-strategy", json={"code": py_strategy, "lang": "python"})
+    print(f"Python Strategy Validation: {v_resp.status_code} {v_resp.json()['message']}")
+    assert v_resp.status_code == 200
+
+    # Execution
+    py_payload = {
+        "strategy_code": py_strategy,
+        "lang": "python",
+        "symbol": "ETHUSDT",
+        "interval": "1d",
+        "start": "2022-01-01",
+        "end": "2024-01-01",
+    }
+    pb = requests.post(f"{base}/api/backtest", json=py_payload)
+    print(f"Python Backtest queued: {pb.status_code} {pb.json()}")
+    assert pb.status_code == 200
+    py_job_id = pb.json()["job_id"]
+
+    for _ in range(10):
+        time.sleep(0.5)
+        ps = requests.get(f"{base}/api/status/{py_job_id}").json()
+        if ps.get("status") == "done":
+            p_metrics = ps["result"]["metrics"]
+            print(f"  PYTHON SUCCESS! Trades: {p_metrics['total_trades']}, Net Profit: ${p_metrics['total_net_profit']}, Win Rate: {p_metrics['win_rate_pct']}%")
+            break
+        elif ps.get("status") == "error":
+            print(f"  PYTHON ERROR: {ps.get('error')}")
+            break
+
+    print("\nALL API ENDPOINTS & PYTHON BACKTESTING TESTED SUCCESSFULLY!")
 
 if __name__ == "__main__":
     test_api()
