@@ -16,27 +16,42 @@
 <header class="navbar">
   <div class="navbar-inner">
     <div class="brand">
-      <svg class="brand-icon" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="28" height="28" rx="7" fill="url(#brandGrad)"/>
-        <path d="M6 20 L10 13 L14 17 L18 9 L22 14" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <svg class="brand-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="32" height="32" rx="8" fill="#131722"/>
+        <rect x="0.5" y="0.5" width="31" height="31" rx="7.5" stroke="url(#brandBorderGrad)" stroke-opacity="0.3"/>
+        <path d="M7 23L13 14L18 19L25 9" stroke="url(#brandLineGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="25" cy="9" r="2.5" fill="#38bdf8"/>
+        <circle cx="7" cy="23" r="2" fill="#6366f1"/>
+        <path d="M13 14V23M18 19V23" stroke="#6366f1" stroke-width="1.2" stroke-dasharray="2 2" stroke-opacity="0.4"/>
         <defs>
-          <linearGradient id="brandGrad" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stop-color="#5b6cf9"/>
-            <stop offset="100%" stop-color="#8b5cf6"/>
+          <linearGradient id="brandBorderGrad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#38bdf8"/>
+            <stop offset="100%" stop-color="#6366f1"/>
+          </linearGradient>
+          <linearGradient id="brandLineGrad" x1="7" y1="23" x2="25" y2="9" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#6366f1"/>
+            <stop offset="50%" stop-color="#818cf8"/>
+            <stop offset="100%" stop-color="#38bdf8"/>
           </linearGradient>
         </defs>
       </svg>
-      <span class="brand-name">StrategyLab</span>
-      <span class="brand-tag">Pine Script Backtester</span>
+      <div class="brand-text">
+        <span class="brand-name">StrategyLab</span>
+        <span class="brand-tag">QUANT ENGINE</span>
+      </div>
     </div>
     <nav class="nav-links">
       <a href="#editor-section" class="nav-link active" id="nav-editor">Strategy Editor</a>
       <a href="#results-section" class="nav-link" id="nav-results">Results</a>
       <a href="#trades-section" class="nav-link" id="nav-trades">Trade Log</a>
     </nav>
-    <div class="nav-status" id="serverStatus">
-      <span class="status-dot"></span>
-      <span class="status-text">Connected</span>
+    <div class="nav-actions">
+      <a href="https://github.com/Shifrozy/strategylab" target="_blank" rel="noopener noreferrer" class="nav-github-link" title="View Source on GitHub">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+        </svg>
+        <span>GitHub</span>
+      </a>
     </div>
   </div>
 </header>
