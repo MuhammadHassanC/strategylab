@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StrategyLab — Free Pine Script &amp; Python Strategy Tester</title>
-  <meta name="description" content="Fast, offline backtesting tool for TradingView Pine Script and Python strategies. Built-in market data, zero setup, and detailed trade statistics." />
+  <title>StrategyLab — Professional Strategy Backtester (Pine Script &amp; Python)</title>
+  <meta name="description" content="Professional, zero-latency quantitative backtesting tool for TradingView Pine Script and Python strategies. Built-in multi-timeframe market data and institutional-grade analytics." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
@@ -16,9 +16,9 @@
 <header class="navbar">
   <div class="navbar-inner">
     <div class="brand">
-      <svg class="brand-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="32" height="32" rx="8" fill="#131722"/>
-        <rect x="0.5" y="0.5" width="31" height="31" rx="7.5" stroke="url(#brandBorderGrad)" stroke-opacity="0.3"/>
+      <svg class="brand-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="32" height="32" rx="8" fill="#0c101d"/>
+        <rect x="0.5" y="0.5" width="31" height="31" rx="7.5" stroke="url(#brandBorderGrad)" stroke-opacity="0.4"/>
         <path d="M7 23L13 14L18 19L25 9" stroke="url(#brandLineGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
         <circle cx="25" cy="9" r="2.5" fill="#38bdf8"/>
         <circle cx="7" cy="23" r="2" fill="#6366f1"/>
@@ -37,17 +37,38 @@
       </svg>
       <div class="brand-text">
         <span class="brand-name">StrategyLab</span>
-        <span class="brand-tag">TESTER</span>
+        <span class="brand-tag">PRO</span>
       </div>
     </div>
-    <nav class="nav-links">
-      <a href="#editor-section" class="nav-link active" id="nav-editor">Strategy Editor</a>
-      <a href="#results-section" class="nav-link" id="nav-results">Results</a>
-      <a href="#trades-section" class="nav-link" id="nav-trades">Trade Log</a>
+
+    <nav class="nav-links" aria-label="Main Navigation">
+      <a href="#editor-section" class="nav-link active" id="nav-editor">
+        <svg class="nav-svg-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+          <path d="M6 7l-4 3 4 3M14 7l4 3-4 3M11 4l-2 12" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Strategy Editor</span>
+      </a>
+      <a href="#results-section" class="nav-link" id="nav-results">
+        <svg class="nav-svg-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+          <path d="M3 17h14M4 13l4-5 3 3 5-7" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Performance</span>
+      </a>
+      <a href="#trades-section" class="nav-link" id="nav-trades">
+        <svg class="nav-svg-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+          <path d="M4 6h12M4 10h12M4 14h7" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Trade Log</span>
+      </a>
     </nav>
+
     <div class="nav-actions">
+      <span class="nav-engine-status" title="Local computational engine ready">
+        <span class="status-indicator"></span>
+        <span class="status-label">Local Engine Ready</span>
+      </span>
       <a href="https://github.com/Shifrozy/strategylab" target="_blank" rel="noopener noreferrer" class="nav-github-link" title="View Source on GitHub">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
         </svg>
         <span>GitHub</span>
@@ -72,8 +93,8 @@
     <h1 class="hero-title">Test Any<br/><span class="gradient-text">Trading Strategy</span></h1>
     
     <p class="hero-subtitle">
-      Test your <strong>Pine Script</strong> and <strong>Python</strong> strategies on historical candles without limits.<br/>
-      Fast simulations, pre-downloaded market data, and full trade statistics.
+      Backtest your <strong>Pine Script</strong> and <strong>Python</strong> strategies on historical candles without limits.<br/>
+      Fast simulations, pre-downloaded multi-timeframe market data, and full trade statistics.
     </p>
 
     <div class="hero-highlights">
@@ -82,6 +103,8 @@
       <span class="spec-node">Pine Script <span class="spec-dim">v4 / v5</span></span>
       <span class="spec-dot-sep"></span>
       <span class="spec-node">Python &amp; Pandas</span>
+      <span class="spec-dot-sep"></span>
+      <span class="spec-node">9 Timeframes <span class="spec-dim">1m → 1W</span></span>
       <span class="spec-dot-sep"></span>
       <span class="spec-node">Full Trade Stats</span>
     </div>
@@ -96,33 +119,56 @@
     <div class="section-header">
       <div>
         <h2 class="section-title">Strategy Editor</h2>
-        <p class="section-desc">Paste or write your strategy code below. Works with TradingView Pine Script and Python.</p>
+        <p class="section-desc">Write or paste strategy code below. Fully compatible with TradingView Pine Script and Python pandas logic.</p>
       </div>
     </div>
 
     <div class="editor-layout">
 
-      <!-- Left: Code Editor -->
+      <!-- Left: Code Editor Workspace -->
       <div class="editor-panel">
         <div class="editor-toolbar">
-          <div class="lang-tabs" id="langTabs">
-            <button type="button" class="lang-tab active" data-lang="pine" id="tabPine">
-              <span class="tab-icon">🌲</span>
+          <div class="lang-tabs" id="langTabs" role="tablist">
+            <button type="button" class="lang-tab active" data-lang="pine" id="tabPine" role="tab" aria-selected="true">
+              <!-- Pine Script Vector Icon -->
+              <svg class="tab-svg-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M10 2L3 11h4l-3 5h12l-3-5h4L10 2z"/>
+                <path d="M10 16v3"/>
+              </svg>
               <span class="tab-label">Pine Script</span>
               <span class="tab-tag">v4/v5</span>
             </button>
-            <button type="button" class="lang-tab" data-lang="python" id="tabPython">
-              <span class="tab-icon">🐍</span>
+            <button type="button" class="lang-tab" data-lang="python" id="tabPython" role="tab" aria-selected="false">
+              <!-- Python Code Terminal Vector Icon -->
+              <svg class="tab-svg-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5z"/>
+                <path d="M7 8l3 2-3 2M11 13h3"/>
+              </svg>
               <span class="tab-label">Python</span>
               <span class="tab-tag">Pandas</span>
             </button>
           </div>
           <div class="editor-actions">
-            <button class="btn-ghost" id="clearBtn" title="Clear editor">Clear</button>
-            <button class="btn-ghost" id="loadExampleBtn" title="Load example strategy">Load Example</button>
+            <button class="btn-ghost" id="clearBtn" title="Clear editor content">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
+              <span>Clear</span>
+            </button>
+            <button class="btn-ghost" id="loadExampleBtn" title="Load sample momentum strategy">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+              </svg>
+              <span>Load Sample</span>
+            </button>
           </div>
         </div>
+
         <div class="code-editor-wrap">
+          <div class="code-editor-line-decor" aria-hidden="true"></div>
           <textarea
             id="pineEditor"
             class="code-editor"
@@ -136,24 +182,39 @@ strategy(&quot;My Strategy&quot;, overlay=true, initial_capital=10000, commissio
 // Supports: SMA, EMA, RSI, MACD, Bollinger Bands, Stochastic, ATR, and more."
           ></textarea>
         </div>
+
         <div class="editor-footer">
-          <div class="validate-status" id="validateStatus"></div>
-          <button class="btn-outline" id="validateBtn">Check Code</button>
+          <div class="validate-status" id="validateStatus" role="status" aria-live="polite"></div>
+          <button class="btn-outline" id="validateBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="M9 12l2 2 4-4"/>
+            </svg>
+            <span>Verify Syntax</span>
+          </button>
         </div>
       </div>
 
-      <!-- Right: Parameters -->
+      <!-- Right: Backtest Parameters Panel -->
       <div class="params-panel">
-        <h3 class="params-title">Backtest Settings</h3>
+        <div class="params-header">
+          <div class="params-title-wrap">
+            <svg class="panel-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <circle cx="6" cy="6" r="2.5"/><circle cx="14" cy="14" r="2.5"/><path d="M8.5 6H17M3 14h8.5"/>
+            </svg>
+            <h3 class="params-title">Backtest Settings</h3>
+          </div>
+          <span class="badge-ready" id="dataReadyBadge">
+            <span class="dot-green"></span> Data Ready
+          </span>
+        </div>
 
         <!-- Asset Selection -->
         <div class="form-group">
-          <div class="label-row">
-            <label class="form-label" for="symbolSelect">Trading Pair / Symbol</label>
-            <span class="badge-ready" id="dataReadyBadge">
-              <span class="dot-green"></span> Data Ready
-            </span>
-          </div>
+          <label class="form-label" for="symbolSelect">
+            <span>Trading Pair / Symbol</span>
+            <span class="field-hint">Pre-Loaded</span>
+          </label>
           <div class="select-wrap">
             <select id="symbolSelect" class="form-select">
               <optgroup label="Crypto (Pre-Loaded)">
@@ -177,7 +238,10 @@ strategy(&quot;My Strategy&quot;, overlay=true, initial_capital=10000, commissio
 
         <!-- Timeframe Selection -->
         <div class="form-group">
-          <label class="form-label" for="interval">Timeframe</label>
+          <label class="form-label" for="interval">
+            <span>Timeframe Interval</span>
+            <span class="field-hint">9 Available</span>
+          </label>
           <div class="select-wrap">
             <select id="interval" class="form-select">
               <optgroup label="Higher Timeframes">
@@ -202,8 +266,8 @@ strategy(&quot;My Strategy&quot;, overlay=true, initial_capital=10000, commissio
         <!-- Date Range Selection with Presets -->
         <div class="form-group">
           <div class="label-row">
-            <label class="form-label">Date Range</label>
-            <div class="preset-group" id="presetGroup">
+            <label class="form-label" style="margin-bottom:0;">Date Range</label>
+            <div class="preset-group" id="presetGroup" role="group" aria-label="Date Range Presets">
               <button type="button" class="preset-btn active" data-preset="all">Max</button>
               <button type="button" class="preset-btn" data-preset="2y">2Y</button>
               <button type="button" class="preset-btn" data-preset="1y">1Y</button>
@@ -222,8 +286,10 @@ strategy(&quot;My Strategy&quot;, overlay=true, initial_capital=10000, commissio
         </div>
 
         <button class="btn-primary" id="runBtn">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5 3l8 5-8 5V3z" fill="currentColor"/></svg>
-          Run Backtest
+          <svg class="btn-play-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path d="M6.3 3.5c-.8-.5-1.8.1-1.8 1v11c0 .9 1 1.5 1.8 1l9.5-5.5a1.2 1.2 0 0 0 0-2L6.3 3.5z"/>
+          </svg>
+          <span>Run Backtest</span>
         </button>
 
       </div>
@@ -231,9 +297,10 @@ strategy(&quot;My Strategy&quot;, overlay=true, initial_capital=10000, commissio
   </section>
 
   <!-- ── Progress Overlay ─────────────────────────────────────────────────── -->
-  <div class="progress-overlay" id="progressOverlay" style="display:none;">
+  <div class="progress-overlay" id="progressOverlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="progressTitle">
     <div class="progress-card">
-      <div class="progress-icon">
+      <div class="progress-radar">
+        <div class="radar-sweep"></div>
         <div class="spinner"></div>
       </div>
       <h3 class="progress-title" id="progressTitle">Loading Market Data</h3>
@@ -249,22 +316,29 @@ strategy(&quot;My Strategy&quot;, overlay=true, initial_capital=10000, commissio
   <section id="results-section" class="section" style="display:none;">
     <div class="section-header">
       <div>
-        <h2 class="section-title">Backtest Results</h2>
+        <h2 class="section-title">Performance Analytics</h2>
         <p class="section-desc" id="reportMeta"></p>
       </div>
       <button class="btn-download" id="downloadBtn">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v8M5 7l3 3 3-3M3 13h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Download CSV
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+        </svg>
+        <span>Export CSV Report</span>
       </button>
     </div>
 
-    <!-- Key Metric Cards -->
+    <!-- Key Metric Cards Grid -->
     <div class="metrics-grid" id="metricsGrid"></div>
 
-    <!-- Equity Curve -->
+    <!-- Equity Curve Chart -->
     <div class="chart-card">
       <div class="chart-card-header">
-        <h3 class="chart-title">Equity Curve</h3>
+        <div class="chart-title-wrap">
+          <svg class="chart-header-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 17l4-6 4 3 6-9"/>
+          </svg>
+          <h3 class="chart-title">Portfolio Equity Curve</h3>
+        </div>
         <span class="chart-sub" id="equitySub"></span>
       </div>
       <div class="chart-wrap">
@@ -272,18 +346,35 @@ strategy(&quot;My Strategy&quot;, overlay=true, initial_capital=10000, commissio
       </div>
     </div>
 
-    <!-- Detailed Stats -->
+    <!-- Detailed Stats 3-Column Grid -->
     <div class="stats-layout">
       <div class="stats-block">
-        <h4 class="stats-block-title">Profit &amp; Returns</h4>
+        <div class="stats-block-header">
+          <svg class="stat-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="10" cy="10" r="7"/><path d="M10 6v8M7 9h6"/>
+          </svg>
+          <h4 class="stats-block-title">Profit &amp; Returns</h4>
+        </div>
         <table class="stats-table" id="returnTable"></table>
       </div>
+
       <div class="stats-block">
-        <h4 class="stats-block-title">Risk &amp; Drawdown</h4>
+        <div class="stats-block-header">
+          <svg class="stat-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 2l8 8-8 8-8-8z"/>
+          </svg>
+          <h4 class="stats-block-title">Risk &amp; Drawdown</h4>
+        </div>
         <table class="stats-table" id="riskTable"></table>
       </div>
+
       <div class="stats-block">
-        <h4 class="stats-block-title">Trade Statistics</h4>
+        <div class="stats-block-header">
+          <svg class="stat-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="14" height="12" rx="2"/><path d="M7 8h6M7 12h4"/>
+          </svg>
+          <h4 class="stats-block-title">Trade Statistics</h4>
+        </div>
         <table class="stats-table" id="tradeTable"></table>
       </div>
     </div>
@@ -297,10 +388,10 @@ strategy(&quot;My Strategy&quot;, overlay=true, initial_capital=10000, commissio
         <h2 class="section-title">Trade Log</h2>
         <p class="section-desc" id="tradesMeta"></p>
       </div>
-      <div class="trades-filter">
-        <button class="filter-btn active" data-filter="all">All</button>
-        <button class="filter-btn" data-filter="win">Wins</button>
-        <button class="filter-btn" data-filter="loss">Losses</button>
+      <div class="trades-filter" role="tablist" aria-label="Trade Filter">
+        <button class="filter-btn active" data-filter="all" role="tab" aria-selected="true">All Trades</button>
+        <button class="filter-btn" data-filter="win" role="tab" aria-selected="false">Wins Only</button>
+        <button class="filter-btn" data-filter="loss" role="tab" aria-selected="false">Losses Only</button>
       </div>
     </div>
 
@@ -308,14 +399,14 @@ strategy(&quot;My Strategy&quot;, overlay=true, initial_capital=10000, commissio
       <table class="trades-table" id="tradesTable">
         <thead>
           <tr>
-            <th>#</th>
-            <th>Entry Date</th>
-            <th>Exit Date</th>
-            <th>Entry Price</th>
-            <th>Exit Price</th>
-            <th>P&amp;L</th>
-            <th>P&amp;L %</th>
-            <th>Result</th>
+            <th scope="col">#</th>
+            <th scope="col">Entry Date</th>
+            <th scope="col">Exit Date</th>
+            <th scope="col">Entry Price</th>
+            <th scope="col">Exit Price</th>
+            <th scope="col">P&amp;L</th>
+            <th scope="col">P&amp;L %</th>
+            <th scope="col">Result</th>
           </tr>
         </thead>
         <tbody id="tradesBody"></tbody>
@@ -328,8 +419,12 @@ strategy(&quot;My Strategy&quot;, overlay=true, initial_capital=10000, commissio
 <!-- ─── Footer ──────────────────────────────────────────────────────────────── -->
 <footer class="footer">
   <div class="footer-inner">
-    <p class="footer-copy">StrategyLab &copy; 2025 — Free, offline strategy tester for Pine Script and Python.</p>
-    <p class="footer-note">For education and testing purposes only. Past performance does not guarantee future results.</p>
+    <div class="footer-brand">
+      <span class="footer-title">StrategyLab</span>
+      <span class="footer-dot">&bull;</span>
+      <span class="footer-copy">Local Pine Script &amp; Python Quantitative Backtester</span>
+    </div>
+    <p class="footer-note">100% private, runs entirely on your local machine. Historical simulation does not guarantee future results.</p>
   </div>
 </footer>
 
