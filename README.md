@@ -1,21 +1,21 @@
-# StrategyLab — Quantitative Trading Strategy Lab
+# StrategyLab — Trading Strategy Backtester
 
-A modern, institutional-grade backtesting platform for algorithmic trading strategies. Test **Pine Script (v4 & v5)** and **Python (Pandas / NumPy)** vectorised strategies on pre-downloaded historical market data with zero API limits, zero latency, and comprehensive trade analytics.
+A fast, offline backtesting tool for trading strategies. Test **Pine Script (v4 & v5)** and **Python (Pandas)** strategies on pre-loaded historical market data without TradingView limits or API keys.
 
 ---
 
 ## Key Highlights
 
-- **Multi-Strategy Support** — Test both TradingView **Pine Script** strategies and custom **Python vectorised strategies** in one unified workspace.
+- **Pine Script & Python Support** — Test both TradingView **Pine Script** strategies and custom **Python (Pandas)** strategies in one place.
 - **100% Offline & Reliable** — Comes bundled with pre-downloaded historical OHLCV market datasets (Crypto & Stocks). No API keys, no rate-limits, and zero network configuration errors.
 - **Pre-Loaded Market Datasets** — Ready out of the box:
   - **Crypto**: `BTC/USDT` (Daily, 4H, 1H), `ETH/USDT` (Daily, 1H), `SOL/USDT` (Daily)
   - **Stocks & ETFs**: `AAPL` (Daily), `SPY` (Daily), `TSLA` (Daily), `NVDA` (Daily)
   - Custom datasets can be downloaded or updated anytime via `python download_data.py`.
-- **Institutional-Grade Performance Metrics** — Net profit, win rate, profit factor, max drawdown, Sharpe ratio, Sortino ratio, Calmar ratio, trade duration, streaks, and Buy & Hold comparison.
+- **Detailed Trade Statistics** — Net profit, win rate, profit factor, max drawdown, Sharpe ratio, Sortino ratio, Calmar ratio, trade duration, streaks, and Buy & Hold comparison.
 - **Interactive Equity Curve** — High-performance chart showing portfolio growth and drawdown over time.
 - **Detailed Trade Log & CSV Export** — Complete record of every executed trade with entry/exit timestamps, prices, P&L, and one-click CSV report download.
-- **Fast & Non-Blocking** — Vectorised simulation running asynchronously on a background worker pool.
+- **Fast & Responsive** — Fast simulation running asynchronously on a background worker pool.
 
 ---
 
@@ -37,7 +37,7 @@ if ta.crossunder(fastEMA, slowEMA) or rsiVal > 70
     strategy.close("Long")
 ```
 
-### 2. Python Quantitative Strategy
+### 2. Python Strategy
 ```python
 import pandas as pd
 import numpy as np
