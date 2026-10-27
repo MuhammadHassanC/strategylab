@@ -8,9 +8,14 @@ A fast, offline backtesting tool for trading strategies. Test **Pine Script (v4 
 
 - **Pine Script & Python Support** — Test both TradingView **Pine Script** strategies and custom **Python (Pandas)** strategies in one place.
 - **100% Offline & Reliable** — Comes bundled with pre-downloaded historical OHLCV market datasets (Crypto & Stocks). No API keys, no rate-limits, and zero network configuration errors.
+- **All Standard Timeframes Supported** — Seamless backtesting on:
+  - **Higher Timeframes**: `1W` (Weekly), `1D` (Daily)
+  - **Hourly Timeframes**: `4H` (4 Hours), `2H` (2 Hours), `1H` (1 Hour)
+  - **Intraday & Scalping**: `30m`, `15m`, `5m`, `1m`
+- **Smart Data Engine & Resampling** — Bundled with 35+ local datasets and intelligent on-the-fly OHLCV aggregation. Select any timeframe and the engine automatically prepares it from local data or caches it offline.
 - **Pre-Loaded Market Datasets** — Ready out of the box:
-  - **Crypto**: `BTC/USDT` (Daily, 4H, 1H), `ETH/USDT` (Daily, 1H), `SOL/USDT` (Daily)
-  - **Stocks & ETFs**: `AAPL` (Daily), `SPY` (Daily), `TSLA` (Daily), `NVDA` (Daily)
+  - **Crypto**: `BTC/USDT`, `ETH/USDT`, `SOL/USDT` across all swing and intraday timeframes.
+  - **Stocks & ETFs**: `AAPL`, `SPY`, `TSLA`, `NVDA` across Daily, Hourly, and 15m timeframes.
   - Custom datasets can be downloaded or updated anytime via `python download_data.py`.
 - **Detailed Trade Statistics** — Net profit, win rate, profit factor, max drawdown, Sharpe ratio, Sortino ratio, Calmar ratio, trade duration, streaks, and Buy & Hold comparison.
 - **Interactive Equity Curve** — High-performance chart showing portfolio growth and drawdown over time.
