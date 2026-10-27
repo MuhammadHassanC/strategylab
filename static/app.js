@@ -93,7 +93,7 @@ plot(fastEMA, color=color.new(color.blue, 0),   title="Fast EMA")
 plot(slowEMA, color=color.new(color.orange, 0), title="Slow EMA")
 `;
 
-const EXAMPLE_PYTHON = `# StrategyLab Python Quantitative Strategy
+const EXAMPLE_PYTHON = `# StrategyLab Python Strategy
 # The 'df' DataFrame contains: open, high, low, close, volume
 
 import numpy as np
@@ -245,7 +245,7 @@ function switchLanguage(lang) {
   if (lang === 'python') {
     el.tabPython().classList.add('active');
     el.tabPine().classList.remove('active');
-    el.editor().placeholder = `# Python Quantitative Strategy\nimport pandas as pd\n\ndef strategy(df: pd.DataFrame):\n    # Calculate signals\n    return entries, exits`;
+    el.editor().placeholder = `# Python Strategy\nimport pandas as pd\n\ndef strategy(df: pd.DataFrame):\n    # Calculate signals\n    return entries, exits`;
     if (!el.editor().value.trim() || el.editor().value === EXAMPLE_PINE) {
       el.editor().value = EXAMPLE_PYTHON;
     }
@@ -336,8 +336,8 @@ function pollStatus(payload) {
 
   const LABELS = {
     queued:   ['In Queue',          'Your backtest is queued…'],
-    fetching: ['Loading Local Market Data', `Reading historical candles for ${payload.symbol} (${payload.interval}) from disk…`],
-    running:  ['Simulating Strategy', 'Calculating indicators and processing trade entries/exits…'],
+    fetching: ['Loading Market Data', `Reading candles for ${payload.symbol} (${payload.interval}) from disk…`],
+    running:  ['Testing Strategy',  'Checking buy and sell conditions on each candle…'],
     done:     ['Complete',          'Backtest finished.'],
     error:    ['Error',             ''],
   };
@@ -394,12 +394,12 @@ function renderResults(result, payload) {
   const cards = [
     { label: 'Total Net Profit',  value: fmtCur(m.total_net_profit, m.currency),  sub: fmtPct(m.total_net_profit_pct),       positive: m.total_net_profit > 0, negative: m.total_net_profit < 0 },
     { label: 'Win Rate',          value: fmtPct(m.win_rate_pct),                  sub: `${m.winning_trades}W / ${m.losing_trades}L`, positive: m.win_rate_pct >= 50, negative: m.win_rate_pct < 40 },
-    { label: 'Total Trades',      value: m.total_trades,                          sub: 'closed positions' },
+    { label: 'Total Trades',      value: m.total_trades,                          sub: 'closed trades' },
     { label: 'Profit Factor',     value: fmt(m.profit_factor, 3),                 sub: 'gross profit / loss', positive: m.profit_factor >= 1.5, negative: m.profit_factor < 1 },
-    { label: 'Max Drawdown',      value: fmtPct(m.max_drawdown_pct),              sub: 'peak-to-trough', negative: true },
-    { label: 'Sharpe Ratio',      value: fmt(m.sharpe_ratio, 3),                  sub: 'risk-adjusted return', positive: m.sharpe_ratio >= 1, negative: m.sharpe_ratio < 0 },
-    { label: 'Final Equity',      value: fmtCur(m.final_equity, m.currency),      sub: `started with ${fmtCur(m.initial_capital, m.currency)}` },
-    { label: 'Alpha vs Buy&Hold', value: fmtPct(m.alpha_vs_buy_hold_pct),         sub: `B&H: ${fmtPct(m.buy_and_hold_return_pct)}`, positive: m.alpha_vs_buy_hold_pct > 0, negative: m.alpha_vs_buy_hold_pct < 0 },
+    { label: 'Max Drawdown',      value: fmtPct(m.max_drawdown_pct),              sub: 'peak-to-trough drop', negative: true },
+    { label: 'Sharpe Ratio',      value: fmt(m.sharpe_ratio, 3),                  sub: 'risk-adjusted score', positive: m.sharpe_ratio >= 1, negative: m.sharpe_ratio < 0 },
+    { label: 'Ending Balance',    value: fmtCur(m.final_equity, m.currency),      sub: `started with ${fmtCur(m.initial_capital, m.currency)}` },
+    { label: 'vs Buy & Hold',     value: fmtPct(m.alpha_vs_buy_hold_pct),         sub: `B&H: ${fmtPct(m.buy_and_hold_return_pct)}`, positive: m.alpha_vs_buy_hold_pct > 0, negative: m.alpha_vs_buy_hold_pct < 0 },
   ];
 
   const grid = el.metricsGrid();
@@ -426,7 +426,7 @@ function renderResults(result, payload) {
     ['Gross Loss',              m.currency + ' ' + fmt(m.gross_loss),          'neg'],
     ['Commission Paid',         m.currency + ' ' + fmt(m.commission_paid),     'neg'],
     ['Buy & Hold Return',       fmtPct(m.buy_and_hold_return_pct),             colorClass(m.buy_and_hold_return_pct)],
-    ['Alpha vs Buy & Hold',     fmtPct(m.alpha_vs_buy_hold_pct),              colorClass(m.alpha_vs_buy_hold_pct)],
+    ['Strategy vs Buy & Hold',  fmtPct(m.alpha_vs_buy_hold_pct),              colorClass(m.alpha_vs_buy_hold_pct)],
   ]);
 
   renderStatTable(el.riskTable(), [

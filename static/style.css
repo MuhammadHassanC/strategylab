@@ -260,7 +260,7 @@ a:hover { color: #fff; }
   margin-bottom: 32px;
 }
 
-/* Borderless VIP Feature Highlights (Single-Line Institutional Text Bar) */
+/* Borderless VIP Feature Highlights (Single-Line Text Bar) */
 .hero-highlights {
   display: flex;
   align-items: center;

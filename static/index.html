@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StrategyLab — Algorithmic Strategy Backtester | Pine Script & Python</title>
-  <meta name="description" content="Institutional algorithmic strategy backtesting engine. Simulate Pine Script and Python (Pandas) strategies with instant local data and risk analytics." />
+  <title>StrategyLab — Free Pine Script &amp; Python Strategy Tester</title>
+  <meta name="description" content="Fast, offline backtesting tool for TradingView Pine Script and Python strategies. Built-in market data, zero setup, and detailed trade statistics." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -37,7 +37,7 @@
       </svg>
       <div class="brand-text">
         <span class="brand-name">StrategyLab</span>
-        <span class="brand-tag">QUANT ENGINE</span>
+        <span class="brand-tag">TESTER</span>
       </div>
     </div>
     <nav class="nav-links">
@@ -64,16 +64,16 @@
         <span class="beacon-pulse"></span>
         <span class="beacon-dot"></span>
       </span>
-      <span class="eyebrow-lead">QUANTITATIVE ENGINE</span>
+      <span class="eyebrow-lead">FAST &amp; PRIVATE</span>
       <span class="eyebrow-divider">/</span>
-      <span class="eyebrow-accent">100% LOCAL &amp; ZERO-LATENCY</span>
+      <span class="eyebrow-accent">RUNS 100% OFFLINE ON YOUR PC</span>
     </div>
 
-    <h1 class="hero-title">Backtest Any<br/><span class="gradient-text">Trading Strategy</span></h1>
+    <h1 class="hero-title">Test Any<br/><span class="gradient-text">Trading Strategy</span></h1>
     
     <p class="hero-subtitle">
-      Institutional backtesting engine for <strong>Pine Script</strong> &amp; <strong>Python</strong> strategies.<br/>
-      Instant vectorised simulation, pre-loaded historical data, and deep risk analytics.
+      Test your <strong>Pine Script</strong> and <strong>Python</strong> strategies on historical candles without limits.<br/>
+      Fast simulations, pre-downloaded market data, and full trade statistics.
     </p>
 
     <div class="hero-highlights">
@@ -83,7 +83,7 @@
       <span class="spec-dot-sep"></span>
       <span class="spec-node">Python &amp; Pandas</span>
       <span class="spec-dot-sep"></span>
-      <span class="spec-node">Institutional Analytics</span>
+      <span class="spec-node">Full Trade Stats</span>
     </div>
   </div>
 </section>
@@ -96,7 +96,7 @@
     <div class="section-header">
       <div>
         <h2 class="section-title">Strategy Editor</h2>
-        <p class="section-desc">Develop, paste, or test your algorithmic strategy code. Supports TradingView Pine Script &amp; Python.</p>
+        <p class="section-desc">Paste or write your strategy code below. Works with TradingView Pine Script and Python.</p>
       </div>
     </div>
 
@@ -138,7 +138,7 @@ strategy(&quot;My Strategy&quot;, overlay=true, initial_capital=10000, commissio
         </div>
         <div class="editor-footer">
           <div class="validate-status" id="validateStatus"></div>
-          <button class="btn-outline" id="validateBtn">Validate Strategy</button>
+          <button class="btn-outline" id="validateBtn">Check Code</button>
         </div>
       </div>
 
@@ -149,9 +149,9 @@ strategy(&quot;My Strategy&quot;, overlay=true, initial_capital=10000, commissio
         <!-- Asset Selection -->
         <div class="form-group">
           <div class="label-row">
-            <label class="form-label" for="symbolSelect">Market Asset</label>
+            <label class="form-label" for="symbolSelect">Trading Pair / Symbol</label>
             <span class="badge-ready" id="dataReadyBadge">
-              <span class="dot-green"></span> Local Data Ready
+              <span class="dot-green"></span> Data Ready
             </span>
           </div>
           <div class="select-wrap">
@@ -190,7 +190,7 @@ strategy(&quot;My Strategy&quot;, overlay=true, initial_capital=10000, commissio
         <!-- Date Range Selection with Presets -->
         <div class="form-group">
           <div class="label-row">
-            <label class="form-label">Backtest Period</label>
+            <label class="form-label">Date Range</label>
             <div class="preset-group" id="presetGroup">
               <button type="button" class="preset-btn active" data-preset="all">Max</button>
               <button type="button" class="preset-btn" data-preset="2y">2Y</button>
@@ -224,8 +224,8 @@ strategy(&quot;My Strategy&quot;, overlay=true, initial_capital=10000, commissio
       <div class="progress-icon">
         <div class="spinner"></div>
       </div>
-      <h3 class="progress-title" id="progressTitle">Fetching Market Data</h3>
-      <p class="progress-sub" id="progressSub">Downloading historical data from the selected source…</p>
+      <h3 class="progress-title" id="progressTitle">Loading Market Data</h3>
+      <p class="progress-sub" id="progressSub">Reading pre-loaded candles from local storage…</p>
       <div class="progress-bar-wrap">
         <div class="progress-bar" id="progressBar" style="width:0%"></div>
       </div>
@@ -237,12 +237,12 @@ strategy(&quot;My Strategy&quot;, overlay=true, initial_capital=10000, commissio
   <section id="results-section" class="section" style="display:none;">
     <div class="section-header">
       <div>
-        <h2 class="section-title">Performance Report</h2>
+        <h2 class="section-title">Backtest Results</h2>
         <p class="section-desc" id="reportMeta"></p>
       </div>
       <button class="btn-download" id="downloadBtn">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v8M5 7l3 3 3-3M3 13h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Download CSV Report
+        Download CSV
       </button>
     </div>
 
@@ -263,15 +263,15 @@ strategy(&quot;My Strategy&quot;, overlay=true, initial_capital=10000, commissio
     <!-- Detailed Stats -->
     <div class="stats-layout">
       <div class="stats-block">
-        <h4 class="stats-block-title">Return &amp; Profitability</h4>
+        <h4 class="stats-block-title">Profit &amp; Returns</h4>
         <table class="stats-table" id="returnTable"></table>
       </div>
       <div class="stats-block">
-        <h4 class="stats-block-title">Risk Metrics</h4>
+        <h4 class="stats-block-title">Risk &amp; Drawdown</h4>
         <table class="stats-table" id="riskTable"></table>
       </div>
       <div class="stats-block">
-        <h4 class="stats-block-title">Trade Analysis</h4>
+        <h4 class="stats-block-title">Trade Statistics</h4>
         <table class="stats-table" id="tradeTable"></table>
       </div>
     </div>
@@ -316,8 +316,8 @@ strategy(&quot;My Strategy&quot;, overlay=true, initial_capital=10000, commissio
 <!-- ─── Footer ──────────────────────────────────────────────────────────────── -->
 <footer class="footer">
   <div class="footer-inner">
-    <p class="footer-copy">StrategyLab &copy; 2025 — Free, open-source Pine Script backtesting tool.</p>
-    <p class="footer-note">Results are for informational purposes only. Past performance does not guarantee future results.</p>
+    <p class="footer-copy">StrategyLab &copy; 2025 — Free, offline strategy tester for Pine Script and Python.</p>
+    <p class="footer-note">For education and testing purposes only. Past performance does not guarantee future results.</p>
   </div>
 </footer>
 
