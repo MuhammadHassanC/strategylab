@@ -51,7 +51,7 @@ def validate_python_code(code: str) -> Tuple[bool, str]:
             "that accepts the OHLCV DataFrame and returns (entries, exits)."
         )
 
-    return True, "Valid Python quantitative strategy."
+    return True, "Valid Python strategy."
 
 
 def execute_python_strategy(
@@ -118,7 +118,7 @@ def execute_python_strategy(
 
     # Create dummy config for metrics calculator
     dummy_cfg = PineStrategyConfig()
-    dummy_cfg.title = "Python Vectorised Strategy"
+    dummy_cfg.title = "Python Strategy"
     dummy_cfg.initial_capital = initial_capital
     dummy_cfg.commission_value = commission_pct
     dummy_cfg.default_qty_value = qty_pct

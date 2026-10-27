@@ -64,7 +64,7 @@ def _run_job(job_id: str, strategy_code: str, symbol: str,
         # Determine strategy engine (Python or Pine Script)
         if is_python_strategy(strategy_code):
             result = execute_python_strategy(df, strategy_code)
-            strat_name = "Python Quantitative Strategy"
+            strat_name = "Python Strategy"
         else:
             cfg = parse_pine_config(strategy_code)
             result = run_backtest(df, cfg)
@@ -132,9 +132,9 @@ def validate_strategy():
             return jsonify({"valid": False, "message": msg}), 422
         return jsonify({
             "valid": True,
-            "strategy_name": "Python Quantitative Strategy",
-            "strategy_type": "Python Vectorized",
-            "message": "Valid Python quantitative strategy detected (strategy function ready)",
+            "strategy_name": "Python Strategy",
+            "strategy_type": "Python",
+            "message": "Valid Python strategy (strategy function ready)",
         })
 
     # Pine Script Strategy

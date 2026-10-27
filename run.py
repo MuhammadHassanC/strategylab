@@ -18,7 +18,7 @@ def open_browser():
 
 if __name__ == "__main__":
     print("\n" + "="*60)
-    print("  Pine Script Strategy Tester")
+    print("  StrategyLab — Strategy Tester (Pine Script & Python)")
     print(f"  Running at ->  http://{HOST}:{PORT}")
     print("="*60 + "\n")
 
