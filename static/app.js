@@ -127,16 +127,26 @@ function showToast(msg, type = 'info', duration = 4000) {
   if (!container) {
     container = document.createElement('div');
     container.className = 'toast-container';
+    container.setAttribute('aria-live', 'polite');
     document.body.appendChild(container);
   }
   const t = document.createElement('div');
   t.className = `toast ${type}`;
-  t.textContent = msg;
+  t.setAttribute('role', 'status');
+
+  const icons = {
+    success: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>`,
+    error: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+    info: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`
+  };
+
+  t.innerHTML = `${icons[type] || icons.info}<span>${msg}</span>`;
   container.appendChild(t);
   setTimeout(() => {
     t.style.opacity = '0';
-    t.style.transition = 'opacity 0.3s';
-    setTimeout(() => t.remove(), 350);
+    t.style.transform = 'translateY(12px) scale(0.96)';
+    t.style.transition = 'all 0.25s var(--ease)';
+    setTimeout(() => t.remove(), 260);
   }, duration);
 }
 
@@ -271,14 +281,18 @@ function switchLanguage(lang) {
   state.currentLang = lang;
   if (lang === 'python') {
     el.tabPython().classList.add('active');
+    el.tabPython().setAttribute('aria-selected', 'true');
     el.tabPine().classList.remove('active');
+    el.tabPine().setAttribute('aria-selected', 'false');
     el.editor().placeholder = `# Python Strategy\nimport pandas as pd\n\ndef strategy(df: pd.DataFrame):\n    # Calculate signals\n    return entries, exits`;
     if (!el.editor().value.trim() || el.editor().value === EXAMPLE_PINE) {
       el.editor().value = EXAMPLE_PYTHON;
     }
   } else {
     el.tabPine().classList.add('active');
+    el.tabPine().setAttribute('aria-selected', 'true');
     el.tabPython().classList.remove('active');
+    el.tabPython().setAttribute('aria-selected', 'false');
     el.editor().placeholder = `//@version=5\nstrategy("My Strategy", overlay=true)\n\n// Paste your Pine Script strategy here...`;
     if (!el.editor().value.trim() || el.editor().value === EXAMPLE_PYTHON) {
       el.editor().value = EXAMPLE_PINE;
@@ -517,13 +531,23 @@ function renderEquityChart(equityCurve, metrics) {
   });
   const values = equityCurve.map(p => p.equity);
   const isProfit = values[values.length - 1] >= values[0];
-  const mainColor = isProfit ? '#22c55e' : '#ef4444';
-  const fillColor = isProfit ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)';
+  const mainColor = isProfit ? '#10b981' : '#f43f5e';
 
   el.equitySub().textContent =
     `${metrics.currency} ${fmt(metrics.initial_capital)} → ${metrics.currency} ${fmt(metrics.final_equity)}`;
 
   const ctx = el.equityChart().getContext('2d');
+  const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+  if (isProfit) {
+    gradient.addColorStop(0, 'rgba(16, 185, 129, 0.28)');
+    gradient.addColorStop(0.7, 'rgba(16, 185, 129, 0.05)');
+    gradient.addColorStop(1, 'rgba(16, 185, 129, 0.00)');
+  } else {
+    gradient.addColorStop(0, 'rgba(244, 63, 94, 0.28)');
+    gradient.addColorStop(0.7, 'rgba(244, 63, 94, 0.05)');
+    gradient.addColorStop(1, 'rgba(244, 63, 94, 0.00)');
+  }
+
   state.equityChart = new Chart(ctx, {
     type: 'line',
     data: {
@@ -532,13 +556,15 @@ function renderEquityChart(equityCurve, metrics) {
         label: 'Portfolio Equity',
         data: values,
         borderColor: mainColor,
-        backgroundColor: fillColor,
-        borderWidth: 2,
+        backgroundColor: gradient,
+        borderWidth: 2.2,
         fill: true,
-        tension: 0.3,
-        pointRadius: equityCurve.length > 100 ? 0 : 3,
-        pointHoverRadius: 5,
-        pointBackgroundColor: mainColor,
+        tension: 0.25,
+        pointRadius: 0,
+        pointHoverRadius: 6,
+        pointHoverBackgroundColor: mainColor,
+        pointHoverBorderColor: '#ffffff',
+        pointHoverBorderWidth: 2,
       }],
     },
     options: {
@@ -548,12 +574,16 @@ function renderEquityChart(equityCurve, metrics) {
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: '#181c26',
-          borderColor: '#1e2332',
+          backgroundColor: '#0c111e',
+          borderColor: 'rgba(255, 255, 255, 0.12)',
           borderWidth: 1,
-          titleColor: '#9da3b8',
-          bodyColor: '#e8eaf2',
+          titleColor: '#94a3b8',
+          titleFont: { family: 'Plus Jakarta Sans', size: 12, weight: '600' },
+          bodyColor: '#ffffff',
+          bodyFont: { family: 'JetBrains Mono', size: 13, weight: '600' },
           padding: 12,
+          boxPadding: 4,
+          usePointStyle: true,
           callbacks: {
             label: ctx => ` ${metrics.currency} ${fmt(ctx.raw)}`,
           },
@@ -563,8 +593,8 @@ function renderEquityChart(equityCurve, metrics) {
         x: {
           grid: { color: 'rgba(255,255,255,0.04)' },
           ticks: {
-            color: '#636a88',
-            font: { family: 'Inter', size: 11 },
+            color: '#64748b',
+            font: { family: 'JetBrains Mono', size: 11 },
             maxTicksLimit: 8,
             maxRotation: 0,
           },
@@ -572,8 +602,8 @@ function renderEquityChart(equityCurve, metrics) {
         y: {
           grid: { color: 'rgba(255,255,255,0.04)' },
           ticks: {
-            color: '#636a88',
-            font: { family: 'Inter', size: 11 },
+            color: '#64748b',
+            font: { family: 'JetBrains Mono', size: 11 },
             callback: val => `${metrics.currency} ${fmt(val, 0)}`,
           },
         },
