@@ -20,20 +20,53 @@ from app.data_manager import save_dataset, list_available_datasets, ensure_data_
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger("download_data")
 
-# Top market assets to bundle
+# Multi-timeframe market assets
 DOWNLOAD_TARGETS = [
     # Crypto from Binance (public REST, no key needed)
+    {"source": "binance", "symbol": "BTCUSDT", "interval": "1w", "start": "2021-01-01", "end": "2024-12-31"},
     {"source": "binance", "symbol": "BTCUSDT", "interval": "1d", "start": "2021-01-01", "end": "2024-12-31"},
     {"source": "binance", "symbol": "BTCUSDT", "interval": "4h", "start": "2023-01-01", "end": "2024-12-31"},
+    {"source": "binance", "symbol": "BTCUSDT", "interval": "2h", "start": "2023-01-01", "end": "2024-12-31"},
     {"source": "binance", "symbol": "BTCUSDT", "interval": "1h", "start": "2024-01-01", "end": "2024-12-31"},
+    {"source": "binance", "symbol": "BTCUSDT", "interval": "30m", "start": "2024-11-01", "end": "2024-12-31"},
+    {"source": "binance", "symbol": "BTCUSDT", "interval": "15m", "start": "2024-11-01", "end": "2024-12-31"},
+    {"source": "binance", "symbol": "BTCUSDT", "interval": "5m", "start": "2024-12-01", "end": "2024-12-31"},
+    {"source": "binance", "symbol": "BTCUSDT", "interval": "1m", "start": "2024-12-01", "end": "2024-12-31"},
+
+    {"source": "binance", "symbol": "ETHUSDT", "interval": "1w", "start": "2021-01-01", "end": "2024-12-31"},
     {"source": "binance", "symbol": "ETHUSDT", "interval": "1d", "start": "2021-01-01", "end": "2024-12-31"},
+    {"source": "binance", "symbol": "ETHUSDT", "interval": "4h", "start": "2023-01-01", "end": "2024-12-31"},
+    {"source": "binance", "symbol": "ETHUSDT", "interval": "2h", "start": "2023-01-01", "end": "2024-12-31"},
     {"source": "binance", "symbol": "ETHUSDT", "interval": "1h", "start": "2024-01-01", "end": "2024-12-31"},
+    {"source": "binance", "symbol": "ETHUSDT", "interval": "30m", "start": "2024-11-01", "end": "2024-12-31"},
+    {"source": "binance", "symbol": "ETHUSDT", "interval": "15m", "start": "2024-11-01", "end": "2024-12-31"},
+    {"source": "binance", "symbol": "ETHUSDT", "interval": "5m", "start": "2024-12-01", "end": "2024-12-31"},
+    {"source": "binance", "symbol": "ETHUSDT", "interval": "1m", "start": "2024-12-01", "end": "2024-12-31"},
+
+    {"source": "binance", "symbol": "SOLUSDT", "interval": "1w", "start": "2022-01-01", "end": "2024-12-31"},
     {"source": "binance", "symbol": "SOLUSDT", "interval": "1d", "start": "2022-01-01", "end": "2024-12-31"},
+    {"source": "binance", "symbol": "SOLUSDT", "interval": "4h", "start": "2023-01-01", "end": "2024-12-31"},
+    {"source": "binance", "symbol": "SOLUSDT", "interval": "1h", "start": "2024-01-01", "end": "2024-12-31"},
+    {"source": "binance", "symbol": "SOLUSDT", "interval": "15m", "start": "2024-11-01", "end": "2024-12-31"},
+
     # Stocks / ETFs from Yahoo
+    {"source": "yahoo", "symbol": "AAPL", "interval": "1w", "start": "2020-01-01", "end": "2024-12-31"},
     {"source": "yahoo", "symbol": "AAPL", "interval": "1d", "start": "2020-01-01", "end": "2024-12-31"},
+    {"source": "yahoo", "symbol": "AAPL", "interval": "1h", "start": "2024-10-01", "end": "2024-12-31"},
+    {"source": "yahoo", "symbol": "AAPL", "interval": "15m", "start": "2024-11-01", "end": "2024-12-31"},
+
+    {"source": "yahoo", "symbol": "SPY", "interval": "1w", "start": "2020-01-01", "end": "2024-12-31"},
     {"source": "yahoo", "symbol": "SPY", "interval": "1d", "start": "2020-01-01", "end": "2024-12-31"},
+    {"source": "yahoo", "symbol": "SPY", "interval": "1h", "start": "2024-10-01", "end": "2024-12-31"},
+    {"source": "yahoo", "symbol": "SPY", "interval": "15m", "start": "2024-11-01", "end": "2024-12-31"},
+
+    {"source": "yahoo", "symbol": "TSLA", "interval": "1w", "start": "2020-01-01", "end": "2024-12-31"},
     {"source": "yahoo", "symbol": "TSLA", "interval": "1d", "start": "2020-01-01", "end": "2024-12-31"},
+    {"source": "yahoo", "symbol": "TSLA", "interval": "1h", "start": "2024-10-01", "end": "2024-12-31"},
+
+    {"source": "yahoo", "symbol": "NVDA", "interval": "1w", "start": "2020-01-01", "end": "2024-12-31"},
     {"source": "yahoo", "symbol": "NVDA", "interval": "1d", "start": "2020-01-01", "end": "2024-12-31"},
+    {"source": "yahoo", "symbol": "NVDA", "interval": "1h", "start": "2024-10-01", "end": "2024-12-31"},
 ]
 
 
