@@ -172,33 +172,54 @@ async function loadAvailableDatasets() {
   }
 }
 
+const ALL_INTERVAL_GROUPS = [
+  {
+    group: 'Higher Timeframes',
+    options: [
+      { value: '1w', label: 'Weekly (1W)' },
+      { value: '1d', label: 'Daily (1D)' },
+    ]
+  },
+  {
+    group: 'Hourly Timeframes',
+    options: [
+      { value: '4h', label: '4 Hours (4H)' },
+      { value: '2h', label: '2 Hours (2H)' },
+      { value: '1h', label: '1 Hour (1H)' },
+    ]
+  },
+  {
+    group: 'Minute Timeframes',
+    options: [
+      { value: '30m', label: '30 Minutes (30m)' },
+      { value: '15m', label: '15 Minutes (15m)' },
+      { value: '5m',  label: '5 Minutes (5m)' },
+      { value: '1m',  label: '1 Minute (1m)' },
+    ]
+  }
+];
+
 function onSymbolChange() {
   const sym = el.symbolSelect().value;
-  const meta = state.datasetsBySymbol[sym];
-  if (!meta) return;
-
   const intervalSelect = el.interval();
-  const currentVal = intervalSelect.value;
+  const currentVal = intervalSelect.value || '1d';
   intervalSelect.innerHTML = '';
 
-  const intervalLabels = {
-    '1d': 'Daily (1D)',
-    '4h': '4 Hours (4H)',
-    '1h': '1 Hour (1H)',
-    '15m': '15 Minutes (15m)',
-    '5m': '5 Minutes (5m)',
-  };
-
-  meta.intervals.forEach(inv => {
-    const opt = document.createElement('option');
-    opt.value = inv;
-    opt.textContent = intervalLabels[inv] || inv.toUpperCase();
-    if (inv === currentVal) opt.selected = true;
-    intervalSelect.appendChild(opt);
+  ALL_INTERVAL_GROUPS.forEach(grp => {
+    const optgroup = document.createElement('optgroup');
+    optgroup.label = grp.group;
+    grp.options.forEach(optData => {
+      const opt = document.createElement('option');
+      opt.value = optData.value;
+      opt.textContent = optData.label;
+      if (optData.value === currentVal) opt.selected = true;
+      optgroup.appendChild(opt);
+    });
+    intervalSelect.appendChild(optgroup);
   });
 
-  if (!meta.intervals.includes(intervalSelect.value)) {
-    intervalSelect.value = meta.intervals[0];
+  if (!intervalSelect.value) {
+    intervalSelect.value = '1d';
   }
 
   updateIntervalMeta();
@@ -209,10 +230,16 @@ function updateIntervalMeta() {
   const inv = el.interval().value;
 
   const match = state.datasets.find(d => d.symbol === sym && d.interval === inv);
+  const symMeta = state.datasetsBySymbol[sym];
+
   if (match) {
     if (el.barsCount()) el.barsCount().textContent = `${match.bars.toLocaleString()} Bars`;
     if (el.dateBounds()) el.dateBounds().textContent = `${match.start} → ${match.end}`;
     applyDatePreset(state.activePreset, match.start, match.end);
+  } else if (symMeta) {
+    if (el.barsCount()) el.barsCount().textContent = `Data Ready (${inv.toUpperCase()})`;
+    if (el.dateBounds()) el.dateBounds().textContent = `${symMeta.start} → ${symMeta.end}`;
+    applyDatePreset(state.activePreset, symMeta.start, symMeta.end);
   }
 }
 
@@ -657,8 +684,11 @@ function init() {
       const sym = el.symbolSelect().value;
       const inv = el.interval().value;
       const match = state.datasets.find(d => d.symbol === sym && d.interval === inv);
-      if (match) {
-        applyDatePreset(preset, match.start, match.end);
+      const symMeta = state.datasetsBySymbol[sym];
+      const start = match ? match.start : (symMeta ? symMeta.start : null);
+      const end = match ? match.end : (symMeta ? symMeta.end : null);
+      if (start && end) {
+        applyDatePreset(preset, start, end);
       }
     });
   });
