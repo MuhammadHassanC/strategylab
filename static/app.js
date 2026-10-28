@@ -531,7 +531,7 @@ function renderEquityChart(equityCurve, metrics) {
   });
   const values = equityCurve.map(p => p.equity);
   const isProfit = values[values.length - 1] >= values[0];
-  const mainColor = isProfit ? '#10b981' : '#f43f5e';
+  const mainColor = isProfit ? '#99b898' : '#e84a5f';
 
   el.equitySub().textContent =
     `${metrics.currency} ${fmt(metrics.initial_capital)} → ${metrics.currency} ${fmt(metrics.final_equity)}`;
@@ -539,13 +539,13 @@ function renderEquityChart(equityCurve, metrics) {
   const ctx = el.equityChart().getContext('2d');
   const gradient = ctx.createLinearGradient(0, 0, 0, 300);
   if (isProfit) {
-    gradient.addColorStop(0, 'rgba(16, 185, 129, 0.28)');
-    gradient.addColorStop(0.7, 'rgba(16, 185, 129, 0.05)');
-    gradient.addColorStop(1, 'rgba(16, 185, 129, 0.00)');
+    gradient.addColorStop(0, 'rgba(153, 184, 152, 0.32)');
+    gradient.addColorStop(0.7, 'rgba(153, 184, 152, 0.06)');
+    gradient.addColorStop(1, 'rgba(153, 184, 152, 0.00)');
   } else {
-    gradient.addColorStop(0, 'rgba(244, 63, 94, 0.28)');
-    gradient.addColorStop(0.7, 'rgba(244, 63, 94, 0.05)');
-    gradient.addColorStop(1, 'rgba(244, 63, 94, 0.00)');
+    gradient.addColorStop(0, 'rgba(232, 74, 95, 0.32)');
+    gradient.addColorStop(0.7, 'rgba(232, 74, 95, 0.06)');
+    gradient.addColorStop(1, 'rgba(232, 74, 95, 0.00)');
   }
 
   state.equityChart = new Chart(ctx, {
@@ -574,10 +574,10 @@ function renderEquityChart(equityCurve, metrics) {
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: '#0c111e',
-          borderColor: 'rgba(255, 255, 255, 0.12)',
+          backgroundColor: '#1b2327',
+          borderColor: 'rgba(254, 206, 168, 0.25)',
           borderWidth: 1,
-          titleColor: '#94a3b8',
+          titleColor: '#fecea8',
           titleFont: { family: 'Plus Jakarta Sans', size: 12, weight: '600' },
           bodyColor: '#ffffff',
           bodyFont: { family: 'JetBrains Mono', size: 13, weight: '600' },
@@ -593,7 +593,7 @@ function renderEquityChart(equityCurve, metrics) {
         x: {
           grid: { color: 'rgba(255,255,255,0.04)' },
           ticks: {
-            color: '#64748b',
+            color: '#6e8088',
             font: { family: 'JetBrains Mono', size: 11 },
             maxTicksLimit: 8,
             maxRotation: 0,
@@ -602,7 +602,7 @@ function renderEquityChart(equityCurve, metrics) {
         y: {
           grid: { color: 'rgba(255,255,255,0.04)' },
           ticks: {
-            color: '#64748b',
+            color: '#6e8088',
             font: { family: 'JetBrains Mono', size: 11 },
             callback: val => `${metrics.currency} ${fmt(val, 0)}`,
           },
@@ -626,8 +626,8 @@ function renderTrades(trades) {
       <td>${formatDate(t.exit_date)}</td>
       <td>${fmt(t.entry_price, 4)}</td>
       <td>${fmt(t.exit_price, 4)}</td>
-      <td class="${isWin ? 'pos' : 'neg'}" style="color:${isWin?'#22c55e':'#ef4444'}">${t.pnl >= 0 ? '+' : ''}${fmt(t.pnl, 4)}</td>
-      <td class="${isWin ? 'pos' : 'neg'}" style="color:${isWin?'#22c55e':'#ef4444'}">${t.pnl_pct >= 0 ? '+' : ''}${fmt(t.pnl_pct, 2)}%</td>
+      <td class="${isWin ? 'pos' : 'neg'}" style="color:${isWin?'#99b898':'#e84a5f'}">${t.pnl >= 0 ? '+' : ''}${fmt(t.pnl, 4)}</td>
+      <td class="${isWin ? 'pos' : 'neg'}" style="color:${isWin?'#99b898':'#e84a5f'}">${t.pnl_pct >= 0 ? '+' : ''}${fmt(t.pnl_pct, 2)}%</td>
       <td><span class="${isWin ? 'badge-win' : 'badge-loss'}">${t.result}</span></td>
     `;
     tbody.appendChild(row);
