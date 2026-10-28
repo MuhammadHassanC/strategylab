@@ -66,7 +66,7 @@ def strategy(df: pd.DataFrame):
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/Shifrozy/strategylab.git
+git clone https://github.com/MuhammadHassanC/strategylab.git
 cd strategylab
 ```
 
